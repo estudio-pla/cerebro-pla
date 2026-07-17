@@ -48,7 +48,8 @@
   <h1>BIOS PLÁ</h1>
   <div style="color:#444;font-size:12px;letter-spacing:.1em">ESTÚDIO PLÁ · ACESSO RESTRITO</div>
   <input id="loginUser" type="text" placeholder="usuário" autocomplete="off">
-  <input id="loginPass" type="password" placeholder="senha" autocomplete="off" onkeydown="if(e.key==='Enter'||event.key==='Enter')entrar()">
+  <input id="loginPass" type="password" placeholder="senha" autocomplete="off">
+  <input id="loginKey" type="password" placeholder="Gemini API Key" autocomplete="off" onkeydown="if(event.key==='Enter')entrar()" style="font-size:14px;letter-spacing:.05em">
   <div id="loginErr"></div>
   <button onclick="entrar()">ENTRAR</button>
 </div>
@@ -72,7 +73,7 @@
 // ══════════════════════════════════════════════
 // CONFIG
 // ══════════════════════════════════════════════
-const GEMINI_KEY = '';
+let GEMINI_KEY = '';
 const GH_TOKEN   = '';
 const GH_REPO    = 'estudio-pla/bios-pla';
 
@@ -82,7 +83,10 @@ const GH_REPO    = 'estudio-pla/bios-pla';
 function entrar() {
   const u = document.getElementById('loginUser').value.trim().toLowerCase();
   const p = document.getElementById('loginPass').value.trim();
+  const k = document.getElementById('loginKey').value.trim();
   if (u === 'euakox' && p === '364520') {
+    if (!k) { document.getElementById('loginErr').textContent = 'Insira a chave Gemini.'; return; }
+    GEMINI_KEY = k;
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('mainApp').style.display = 'flex';
     iniciar();
