@@ -425,6 +425,7 @@
       id="ghToken"
       placeholder="GitHub Token (leitura da memória)..."
       oninput="checkGhToken()"
+      value=""
       style="width:260px"
     >
     <div class="api-dot" id="apiDot"></div>
@@ -434,6 +435,7 @@
       id="apiKey"
       placeholder="Gemini API Key..."
       oninput="checkKey()"
+      value=""
     >
   </div>
 </header>
@@ -588,13 +590,9 @@ function renderMem() {
 // ════════════════════════════════════════════
 
 function checkGhToken() {
-  const val = document.getElementById('ghToken').value;
-  const ok = val.length > 10;
+  const ok = document.getElementById('ghToken').value.length > 10;
   document.getElementById('memDot').className = 'api-dot' + (ok ? ' on' : '');
-  if (ok) {
-    try { localStorage.setItem('bios_gh_token', val); } catch(_) {}
-    loadAmigdala(); loadReptiliano();
-  }
+  if (ok) { loadAmigdala(); loadReptiliano(); }
 }
 
 async function loadAmigdala() {
@@ -625,10 +623,8 @@ async function loadAmigdala() {
 // ════════════════════════════════════════════
 
 function checkKey() {
-  const val = document.getElementById('apiKey').value;
-  const ok = val.length > 10;
+  const ok = document.getElementById('apiKey').value.length > 10;
   document.getElementById('apiDot').className = 'api-dot' + (ok ? ' on' : '');
-  if (ok) { try { localStorage.setItem('bios_gemini_key', val); } catch(_) {} }
 }
 
 // ════════════════════════════════════════════
@@ -762,14 +758,6 @@ renderRules();
 renderMem();
 tick();
 setInterval(tick, 1000);
-
-// Recupera chaves salvas no navegador (nunca gravadas no arquivo)
-try {
-  const savedGh  = localStorage.getItem('bios_gh_token');
-  const savedGem = localStorage.getItem('bios_gemini_key');
-  if (savedGh)  { document.getElementById('ghToken').value = savedGh; }
-  if (savedGem) { document.getElementById('apiKey').value  = savedGem; }
-} catch(_) {}
 checkGhToken();
 checkKey();
 </script>
