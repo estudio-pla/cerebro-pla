@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BIOS PLÁ — Cérebro Completo v1.0.0</title>
+<title>BIOS PLÁ — Cérebro Híbrido v1.4.0</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -407,6 +407,32 @@
     .api-input { width: 170px; }
     .brand h1 em { display: none; }
   }
+
+  .btn-mic {
+    background: var(--surface-1, #1a1a1a);
+    border: 0.5px solid var(--border, #333);
+    color: var(--fg, #eee);
+    padding: 0 18px;
+    height: 40px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background 0.2s, transform 0.1s;
+    flex-shrink: 0;
+  }
+  .btn-mic:hover { background: var(--surface-2, #222); }
+  .btn-mic.recording {
+    background: #c0392b;
+    border-color: #e74c3c;
+    animation: micpulse 1s ease-in-out infinite;
+  }
+  @keyframes micpulse {
+    0%,100% { opacity:1; transform:scale(1); }
+    50%      { opacity:.75; transform:scale(1.05); }
+  }
+  .btn-row  { display:flex; gap:8px; align-items:center; }
+  .mic-hint { font-size:10px; color:var(--muted,#666); margin-top:4px; letter-spacing:.04em; }
+
 </style>
 </head>
 <body>
@@ -487,7 +513,11 @@
         <div class="step"><div class="dot" id="d3"></div>Enviando ao Gemini com contexto PLÁ</div>
         <div class="step"><div class="dot" id="d4"></div>Sintetizando resposta</div>
       </div>
-      <button class="btn-exec" id="execBtn" onclick="executar()">▶ EXECUTAR</button>
+      <div class="btn-row">
+        <button class="btn-exec" id="execBtn" onclick="executar()">▶ EXECUTAR</button>
+        <button class="btn-mic" id="micBtn" onclick="toggleMic()" title="Clique: toggle · Segure →: push-to-talk">🎙</button>
+      </div>
+      <div class="mic-hint" id="micHint">🎙 Clique no mic ou segure → para falar</div>
     </div>
   </div>
 
@@ -504,7 +534,7 @@
 
 <!-- ═══ FOOTER ═══ -->
 <footer class="footer">
-  <span>ESTÚDIO PLÁ · BIOS Cérebro Completo v1.3.0 · L1 puro, L2 hierárquico</span>
+  <span>ESTÚDIO PLÁ · BIOS Cérebro Híbrido v1.4.0 · Texto + Voz</span>
   <span id="clock"></span>
 </footer>
 
@@ -654,7 +684,7 @@ function buildPrompt() {
   const pontual = BIOS.amigdala.filter(e => e.prioridade !== 'estrutural')
     .map(e => `  • [${e.id}] "${e.titulo}" | ${e.conteudo} | regra: ${e.regra_derivada}`).join('\n') || '  (nenhuma)';
 
-  return `Você é o GERENTE do BIOS PLÁ — Cérebro Completo v1.3.0.
+  return `Você é o GERENTE do BIOS PLÁ — Cérebro Híbrido v1.4.0.
 Opera no Estúdio Plá de Kaue Ferreira Moraes (Bauru, SP) — estúdio profissional de produção musical assistida por IA.
 
 ╔══ LAYER 1 — REPTILIANO (Regra Zero + Três Diretrizes — a única coisa que nunca muda) ══╗
@@ -750,6 +780,80 @@ function tick() {
   document.getElementById('clock').textContent =
     new Date().toLocaleString('pt-BR');
 }
+
+
+// ════════════════════════════════════════════
+// MICROFONE — Modo 1: Toggle | Modo 2: → PTT
+// ════════════════════════════════════════════
+let recognition = null;
+let micActive   = false;
+
+function initRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    const h = document.getElementById('micHint');
+    if (h) h.textContent = '⚠ Voz não suportada — use Chrome ou Chromium.';
+    return null;
+  }
+  const r = new SR();
+  r.lang = 'pt-BR'; r.continuous = true; r.interimResults = false;
+  r.onresult = (ev) => {
+    const t = Array.from(ev.results).slice(ev.resultIndex)
+      .filter(x => x.isFinal).map(x => x[0].transcript.trim()).join(' ');
+    if (!t) return;
+    const ta = document.getElementById('taskInput');
+    ta.value += (ta.value.trim() ? ' ' : '') + t;
+  };
+  r.onerror = (ev) => {
+    if (ev.error !== 'no-speech') { micActive = false; _micBtn(); }
+  };
+  r.onend = () => { if (micActive) { try { r.start(); } catch(e){} } };
+  return r;
+}
+
+function _micBtn(hint) {
+  const btn = document.getElementById('micBtn');
+  const inf = document.getElementById('micHint');
+  if (micActive) {
+    btn.className = 'btn-mic recording'; btn.textContent = '🔴';
+    if (inf) inf.textContent = '● Gravando — clique para parar · solte → para parar';
+  } else {
+    btn.className = 'btn-mic'; btn.textContent = '🎙';
+    if (inf) inf.textContent = hint || '🎙 Clique no mic ou segure → para falar';
+  }
+}
+
+function toggleMic() {
+  if (!recognition) recognition = initRecognition();
+  if (!recognition) return;
+  if (micActive) { micActive = false; recognition.stop(); }
+  else { micActive = true; try { recognition.start(); } catch(e){} }
+  _micBtn();
+}
+
+function _startPTT() {
+  if (micActive) return;
+  if (!recognition) recognition = initRecognition();
+  if (!recognition) return;
+  micActive = true; try { recognition.start(); } catch(e){} _micBtn();
+}
+function _stopPTT() {
+  if (!micActive) return;
+  micActive = false; if (recognition) recognition.stop(); _micBtn();
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' && !e.repeat) {
+    const t = document.activeElement.tagName;
+    if (t !== 'INPUT' && t !== 'TEXTAREA') _startPTT();
+  }
+});
+document.addEventListener('keyup', (e) => {
+  if (e.key === 'ArrowRight') {
+    const t = document.activeElement.tagName;
+    if (t !== 'INPUT' && t !== 'TEXTAREA') _stopPTT();
+  }
+});
 
 // ════════════════════════════════════════════
 // INIT
