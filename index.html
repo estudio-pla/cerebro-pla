@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>BIOS PLÁ — v2.0.0</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%23111'/><text y='.9em' font-size='80' x='10'>🧠</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%230a0a0a'/><circle cx='50' cy='50' r='40' fill='none' stroke='%2339ff14' stroke-width='4' opacity='0.35'/><circle cx='50' cy='50' r='26' fill='%2339ff14'/></svg>">
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   body{background:#0a0a0a;color:#e0e0e0;font-family:'Courier New',monospace;height:100vh;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center}
@@ -73,7 +73,7 @@
 // ══════════════════════════════════════════════
 // CONFIG
 // ══════════════════════════════════════════════
-let GEMINI_KEY = '';
+const GEMINI_KEY = 'AIzaSyDqVohSeDhCFOH558u9SVMJCgi4FAGOvaQ';
 const GH_TOKEN   = '';
 const GH_REPO    = 'estudio-pla/bios-pla';
 
@@ -102,21 +102,22 @@ function entrar() {
 let vozMasc = null;
 function carregarVoz() {
   const vozes = speechSynthesis.getVoices();
-  // Prioriza: masculina + português BR
-  vozMasc = vozes.find(v => v.lang === 'pt-BR' && v.name.toLowerCase().includes('masculin'))
-         || vozes.find(v => v.lang === 'pt-BR' && !v.name.toLowerCase().includes('female'))
-         || vozes.find(v => v.lang.startsWith('pt'))
+  const femininos = /female|feminin|woman|girl|lucia|vitoria|francisca/i;
+  vozMasc = vozes.find(v => v.lang === 'pt-BR' && /male|masculin|masc|daniel|ricardo|antonio/i.test(v.name))
+         || vozes.find(v => v.lang === 'pt-BR' && !femininos.test(v.name))
+         || vozes.find(v => v.lang.startsWith('pt') && !femininos.test(v.name))
+         || vozes.find(v => !femininos.test(v.name))
          || vozes[0];
 }
 speechSynthesis.onvoiceschanged = carregarVoz;
 
 function falar(texto, cb) {
   carregarVoz();
-  const u = new SpeechSynthesisUtterance(texto);
+  const u = new SpeechSynthesisUtterance('\u00A0\u00A0' + texto);
   u.voice = vozMasc;
   u.lang  = 'pt-BR';
-  u.pitch = 0.7;
-  u.rate  = 1.05;
+  u.pitch = 0.4;
+  u.rate  = 0.95;
   if (cb) u.onend = cb;
   speechSynthesis.speak(u);
 }
