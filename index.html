@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BIOS PLÁ — Cérebro Híbrido v1.4.0</title>
+<title>BIOS PLÁ — Cérebro Híbrido v1.4.1</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -534,7 +534,7 @@
 
 <!-- ═══ FOOTER ═══ -->
 <footer class="footer">
-  <span>ESTÚDIO PLÁ · BIOS Cérebro Híbrido v1.4.0 · Texto + Voz</span>
+  <span>ESTÚDIO PLÁ · BIOS Cérebro Híbrido v1.4.1 · Texto + Voz + Saída limpa</span>
   <span id="clock"></span>
 </footer>
 
@@ -684,7 +684,7 @@ function buildPrompt() {
   const pontual = BIOS.amigdala.filter(e => e.prioridade !== 'estrutural')
     .map(e => `  • [${e.id}] "${e.titulo}" | ${e.conteudo} | regra: ${e.regra_derivada}`).join('\n') || '  (nenhuma)';
 
-  return `Você é o GERENTE do BIOS PLÁ — Cérebro Híbrido v1.4.0.
+  return `Você é o GERENTE do BIOS PLÁ — Cérebro Híbrido v1.4.1.
 Opera no Estúdio Plá de Kaue Ferreira Moraes (Bauru, SP) — estúdio profissional de produção musical assistida por IA.
 
 ╔══ LAYER 1 — REPTILIANO (Regra Zero + Três Diretrizes — a única coisa que nunca muda) ══╗
@@ -759,7 +759,17 @@ async function executar() {
 
     ts.textContent = new Date().toLocaleString('pt-BR');
     body.innerHTML = '';
-    body.textContent = text;
+    // Limpa markdown: remove **, *, ##, #, __, _ — texto puro para leitura/voz
+    const textoLimpo = text
+      .replace(/#{1,6}\s*/g, '')
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/__([^_]+)__/g, '$1')
+      .replace(/_([^_]+)_/g, '$1')
+      .replace(/^[-*]\s+/gm, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+    body.textContent = textoLimpo;
 
   } catch (err) {
     [1,2,3,4].forEach(i => {
