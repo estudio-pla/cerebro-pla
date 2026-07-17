@@ -230,14 +230,26 @@ function buildPrompt() {
 }
 
 async function enviarGemini(texto) {
+  // Descobre modelo ativo
+  const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_KEY}`);
+  const listData = await listRes.json();
+  if (!listRes.ok) throw new Error(listData.error?.message || 'Chave inválida');
+  const modelos = listData.models.filter(m =>
+    m.supportedGenerationMethods?.includes('generateContent') && m.name.includes('gemini')
+  );
+  if (!modelos.length) throw new Error('Nenhum modelo disponível');
+  const modelo = modelos[0].name;
+
+  // Monta prompt com sistema embutido no texto
+  const promptFull = buildPrompt() + '\n\nTAREFA DO USUÁRIO:\n' + texto;
+
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent`,
-    {method:'POST',headers:{'Content-Type':'application/json','X-goog-api-key':GEMINI_KEY},
-     body:JSON.stringify({system_instruction:{parts:[{text:buildPrompt()}]},contents:[{parts:[{text:texto}]}]})});
+    `https://generativelanguage.googleapis.com/v1beta/${modelo}:generateContent?key=${GEMINI_KEY}`,
+    {method:'POST',headers:{'Content-Type':'application/json'},
+     body:JSON.stringify({contents:[{parts:[{text:promptFull}]}]})});
   if (!res.ok) { const e=await res.json(); throw new Error(e.error?.message||'Erro Gemini'); }
   const d = await res.json();
   let r = d.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  // Limpa markdown
   r = r.replace(/#{1,6}\s*/g,'').replace(/\*\*([^*]+)\*\*/g,'$1').replace(/\*([^*]+)\*/g,'$1').replace(/^[-*]\s+/gm,'').trim();
   return r;
 }
