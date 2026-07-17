@@ -9,14 +9,6 @@
   *{margin:0;padding:0;box-sizing:border-box}
   body{background:#0a0a0a;color:#e0e0e0;font-family:'Courier New',monospace;height:100vh;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center}
 
-  /* LOGIN */
-  #loginScreen{position:fixed;inset:0;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;gap:20px}
-  #loginScreen h1{font-size:28px;letter-spacing:.2em;color:#39ff14;text-shadow:0 0 20px #39ff14}
-  #loginScreen input{background:#111;border:1px solid #333;color:#e0e0e0;padding:12px 20px;font-size:18px;font-family:monospace;border-radius:8px;width:260px;text-align:center}
-  #loginScreen input:focus{outline:none;border-color:#39ff14}
-  #loginErr{color:#ff4444;font-size:14px;min-height:20px}
-  #loginScreen button{background:#39ff14;color:#000;border:none;padding:12px 40px;font-size:16px;font-weight:700;border-radius:8px;cursor:pointer;letter-spacing:.1em}
-
   /* MAIN */
   #mainApp{display:none;flex-direction:column;align-items:center;width:100vw;height:100vh;padding:20px}
   #header{font-size:13px;color:#555;letter-spacing:.15em;margin-bottom:16px}
@@ -43,20 +35,8 @@
 </head>
 <body>
 
-<!-- LOGIN -->
-<div id="loginScreen">
-  <h1>BIOS PLÁ</h1>
-  <div style="color:#444;font-size:12px;letter-spacing:.1em">ESTÚDIO PLÁ · ACESSO RESTRITO</div>
-  <input id="loginUser" type="text" placeholder="usuário" autocomplete="off">
-  <input id="loginPass" type="password" placeholder="senha" autocomplete="off">
-  <input id="loginKey" type="password" placeholder="API Key" autocomplete="off" onkeydown="if(event.key==='Enter')entrar()" style="font-size:14px;letter-spacing:.05em">
-  <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#39ff14;font-size:11px;letter-spacing:.06em;text-decoration:none;opacity:.7">Gere ou adquira sua chave em aistudio.google.com</a>
-  <div id="loginErr"></div>
-  <button onclick="entrar()">ENTRAR</button>
-</div>
-
 <!-- MAIN -->
-<div id="mainApp">
+<div id="mainApp" style="display:flex;flex-direction:column;align-items:center;width:100vw;height:100vh;padding:20px">
   <div id="header">BIOS PLÁ v2.0.0 · ESTÚDIO PLÁ · Kaue Ferreira Moraes</div>
 
   <div id="gonioWrap">
@@ -71,31 +51,20 @@
 </div>
 
 <script>
+
+const EL_KEY   = '';
+const EL_VOICE = 'ybQssgFvEJA3tBLKGwPs';
+
 // ══════════════════════════════════════════════
 // CONFIG
 // ══════════════════════════════════════════════
-let GEMINI_KEY = '';
+const GEMINI_KEY = '';
 const GH_TOKEN   = '';
 const GH_REPO    = 'estudio-pla/bios-pla';
 
 // ══════════════════════════════════════════════
 // LOGIN
 // ══════════════════════════════════════════════
-function entrar() {
-  const u = document.getElementById('loginUser').value.trim().toLowerCase();
-  const p = document.getElementById('loginPass').value.trim();
-  const k = document.getElementById('loginKey').value.trim();
-  if (u === 'euakox' && p === '364520') {
-    if (!k) { document.getElementById('loginErr').textContent = 'Insira a chave Gemini.'; return; }
-    GEMINI_KEY = k;
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('mainApp').style.display = 'flex';
-    iniciar();
-  } else {
-    document.getElementById('loginErr').textContent = 'Acesso negado.';
-    setTimeout(()=>document.getElementById('loginErr').textContent='', 2000);
-  }
-}
 
 // ══════════════════════════════════════════════
 // VOZ MASCULINA
@@ -112,15 +81,30 @@ function carregarVoz() {
 }
 speechSynthesis.onvoiceschanged = carregarVoz;
 
-function falar(texto, cb) {
-  carregarVoz();
-  const u = new SpeechSynthesisUtterance('\u00A0\u00A0' + texto);
-  u.voice = vozMasc;
-  u.lang  = 'pt-BR';
-  u.pitch = 0.4;
-  u.rate  = 0.95;
-  if (cb) u.onend = cb;
-  speechSynthesis.speak(u);
+async function falar(texto, cb) {
+  try {
+    const res = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${EL_VOICE}`,
+      { method:'POST',
+        headers:{'xi-api-key':EL_KEY,'Content-Type':'application/json'},
+        body: JSON.stringify({
+          text: '\u00A0\u00A0' + texto,
+          model_id: 'eleven_multilingual_v2',
+          voice_settings: {stability:0.5,similarity_boost:0.75,style:0.3,use_speaker_boost:true}
+        })
+      }
+    );
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const aud  = new Audio(url);
+    aud.onended = () => { URL.revokeObjectURL(url); if(cb) cb(); };
+    await aud.play();
+  } catch(e) {
+    const u = new SpeechSynthesisUtterance('\u00A0\u00A0' + texto);
+    u.lang = 'pt-BR'; u.pitch = 0.4; u.rate = 0.95;
+    if (cb) u.onend = cb;
+    speechSynthesis.speak(u);
+  }
 }
 
 // ══════════════════════════════════════════════
