@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BIOS PLÁ — Cérebro Híbrido v1.4.1</title>
+<title>BIOS PLÁ — Cérebro Híbrido v1.5.0</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -448,20 +448,14 @@
     <input
       type="password"
       class="api-input"
-      id="ghToken"
-      placeholder="GitHub Token (leitura da memória)..."
-      oninput="checkGhToken()"
-      value=""
+      id="ghToken" value=""
       style="width:260px"
     >
     <div class="api-dot" id="apiDot"></div>
     <input
       type="password"
       class="api-input"
-      id="apiKey"
-      placeholder="Gemini API Key..."
-      oninput="checkKey()"
-      value=""
+      id="apiKey" value=""
     >
   </div>
 </header>
@@ -517,7 +511,7 @@
         <button class="btn-exec" id="execBtn" onclick="executar()">▶ EXECUTAR</button>
         <button class="btn-mic" id="micBtn" onclick="toggleMic()" title="Clique: toggle · Segure →: push-to-talk">🎙</button>
       </div>
-      <div class="mic-hint" id="micHint">🎙 Clique no mic ou segure → para falar</div>
+      <div class="mic-hint" id="micHint">🎙 Segure ESPAÇO para falar · Solte para enviar</div>
     </div>
   </div>
 
@@ -534,7 +528,7 @@
 
 <!-- ═══ FOOTER ═══ -->
 <footer class="footer">
-  <span>ESTÚDIO PLÁ · BIOS Cérebro Híbrido v1.4.1 · Texto + Voz + Saída limpa</span>
+  <span>ESTÚDIO PLÁ · BIOS Cérebro Híbrido v1.5.0 · Modo Operação · Espaço → Voz → Resposta</span>
   <span id="clock"></span>
 </footer>
 
@@ -684,7 +678,7 @@ function buildPrompt() {
   const pontual = BIOS.amigdala.filter(e => e.prioridade !== 'estrutural')
     .map(e => `  • [${e.id}] "${e.titulo}" | ${e.conteudo} | regra: ${e.regra_derivada}`).join('\n') || '  (nenhuma)';
 
-  return `Você é o GERENTE do BIOS PLÁ — Cérebro Híbrido v1.4.1.
+  return `Você é o GERENTE do BIOS PLÁ — Cérebro Híbrido v1.5.0.
 Opera no Estúdio Plá de Kaue Ferreira Moraes (Bauru, SP) — estúdio profissional de produção musical assistida por IA.
 
 ╔══ LAYER 1 — REPTILIANO (Regra Zero + Três Diretrizes — a única coisa que nunca muda) ══╗
@@ -829,7 +823,7 @@ function _micBtn(hint) {
     if (inf) inf.textContent = '● Gravando — clique para parar · solte → para parar';
   } else {
     btn.className = 'btn-mic'; btn.textContent = '🎙';
-    if (inf) inf.textContent = hint || '🎙 Clique no mic ou segure → para falar';
+    if (inf) inf.textContent = hint || '🎙 Segure ESPAÇO para falar · Solte para enviar';
   }
 }
 
@@ -874,6 +868,113 @@ tick();
 setInterval(tick, 1000);
 checkGhToken();
 checkKey();
+
+// ════════════════════════════════════════════
+// MODO OPERAÇÃO v1.5.0
+// Espaço: segura→mic, solta→envia ao Gemini
+// Auto-salva no GitHub + botão copiar
+// ════════════════════════════════════════════
+
+// Override ArrowRight — agora só espaço é PTT principal
+document.removeEventListener('keydown', window._pttDown);
+document.removeEventListener('keyup',   window._pttUp);
+
+let _espacoAtivo = false;
+
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space' && !e.repeat) {
+    const tag = document.activeElement.tagName;
+    if (tag !== 'INPUT' && tag !== 'TEXTAREA') {
+      e.preventDefault();
+      _espacoAtivo = true;
+      if (!recognition) recognition = initRecognition();
+      if (!recognition) return;
+      if (!micActive) {
+        micActive = true;
+        try { recognition.start(); } catch(err) {}
+        _micBtn();
+      }
+    }
+  }
+});
+
+document.addEventListener('keyup', (e) => {
+  if (e.code === 'Space' && _espacoAtivo) {
+    e.preventDefault();
+    _espacoAtivo = false;
+    if (micActive) {
+      micActive = false;
+      if (recognition) recognition.stop();
+      _micBtn();
+      // Auto-submit após 600ms (tempo pra onresult chegar)
+      setTimeout(() => {
+        const ta = document.getElementById('taskInput');
+        if (ta.value.trim()) executar();
+      }, 600);
+    }
+  }
+});
+
+// Override do final da função executar — adiciona copiar + salvar
+const _execOriginal = window.executar;
+async function executar() {
+  await _execOriginal.call(this);
+  // Aguarda o body ter conteúdo
+  setTimeout(() => {
+    const body = document.getElementById('outBody');
+    const texto = body.textContent || '';
+    if (!texto || texto.includes('Aguardando') || texto.includes('ERRO')) return;
+    
+    // Botão copiar
+    const btn = document.createElement('button');
+    btn.textContent = '📋 Copiar';
+    btn.style.cssText = 'margin-top:10px;padding:6px 14px;background:#2a2a2a;border:0.5px solid #444;color:#eee;border-radius:6px;cursor:pointer;font-size:13px;';
+    btn.onclick = () => { navigator.clipboard.writeText(texto); btn.textContent = '✓ Copiado'; setTimeout(()=>{btn.textContent='📋 Copiar'},2000); };
+    
+    // Remove botão anterior se existir
+    const old = document.getElementById('btnCopiar');
+    if (old) old.remove();
+    btn.id = 'btnCopiar';
+    body.appendChild(document.createElement('br'));
+    body.appendChild(btn);
+    
+    // Auto-salva no GitHub
+    salvarNoGitHub(document.getElementById('taskInput').value, texto);
+  }, 500);
+}
+window.executar = executar;
+
+async function salvarNoGitHub(pergunta, resposta) {
+  const token = document.getElementById('ghToken').value.trim();
+  if (!token) return;
+  
+  const ts = new Date().toLocaleString('pt-BR');
+  const entrada = ;
+  
+  try {
+    const headers = { 'Authorization': , 'Accept': 'application/vnd.github.v3+json' };
+    const path = 'registros/sessao-ativa.txt';
+    const url = ;
+    
+    let sha = null, conteudoAtual = '';
+    try {
+      const res = await fetch(url, { headers });
+      if (res.ok) {
+        const d = await res.json();
+        sha = d.sha;
+        conteudoAtual = atob(d.content.replace(/
+/g,''));
+      }
+    } catch(e) {}
+    
+    const novoConteudo = conteudoAtual + entrada;
+    const body = { message: , content: btoa(unescape(encodeURIComponent(novoConteudo))) };
+    if (sha) body.sha = sha;
+    
+    await fetch(url, { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  } catch(e) { console.warn('Erro ao salvar:', e); }
+}
+
 </script>
 </body>
 </html>
