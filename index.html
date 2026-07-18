@@ -3,44 +3,48 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BIOS PLÁ — v2.0.0</title>
+<title>BIOS PLÁ — v2.3.0</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%230a0a0a'/><circle cx='50' cy='50' r='40' fill='none' stroke='%2339ff14' stroke-width='4' opacity='0.35'/><circle cx='50' cy='50' r='26' fill='%2339ff14'/></svg>">
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   body{background:#0a0a0a;color:#e0e0e0;font-family:'Courier New',monospace;height:100vh;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center}
 
+  /* LOGIN */
+  #loginScreen{position:fixed;inset:0;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;gap:14px}
+  #loginScreen h1{font-size:26px;letter-spacing:.2em;color:#39ff14;text-shadow:0 0 20px #39ff14;margin-bottom:6px}
+  #loginScreen input{background:#111;border:1px solid #333;color:#e0e0e0;padding:11px 20px;font-size:16px;font-family:monospace;border-radius:8px;width:280px;text-align:center}
+  #loginScreen input:focus{outline:none;border-color:#39ff14}
+  #loginErr{color:#ff4444;font-size:12px;min-height:16px}
+  #loginScreen button{background:#39ff14;color:#000;border:none;padding:11px 40px;font-size:15px;font-weight:700;border-radius:8px;cursor:pointer;letter-spacing:.1em}
+  #loginLink{color:#39ff14;font-size:10px;opacity:.55;text-decoration:none;letter-spacing:.05em}
+
   /* MAIN */
-  #mainApp{display:none;flex-direction:column;align-items:center;width:100vw;height:100vh;padding:20px}
-  #header{font-size:13px;color:#555;letter-spacing:.15em;margin-bottom:16px}
+  #mainApp{display:none;flex-direction:column;align-items:center;width:100vw;height:100vh;padding:16px}
+  #header{font-size:11px;color:#555;letter-spacing:.15em;margin-bottom:12px}
 
   /* GONIÔMETRO */
-  #gonioWrap{position:relative;width:280px;height:280px;margin:0 auto 20px}
-  #gonioCanvas{width:280px;height:280px;border-radius:50%}
-  #gonioLabel{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:13px;color:#39ff14;letter-spacing:.1em;text-align:center;line-height:1.8;pointer-events:none}
+  #gonioWrap{position:relative;width:260px;height:260px;margin:0 auto 14px}
+  #gonioCanvas{width:260px;height:260px;border-radius:50%}
+  #gonioLabel{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:12px;color:#39ff14;letter-spacing:.1em;text-align:center;line-height:1.8;pointer-events:none}
+
+  /* SELETOR DE VOZ */
+  #voiceSelector{display:flex;gap:8px;margin-bottom:10px}
+  .vbtn{background:#111;border:1px solid #333;color:#666;padding:5px 16px;border-radius:20px;cursor:pointer;font-family:monospace;font-size:12px;letter-spacing:.08em;transition:all .2s}
+  .vbtn.active{border-color:#39ff14;color:#39ff14}
 
   /* STATUS */
-  #status{font-size:14px;color:#555;letter-spacing:.08em;min-height:22px;text-align:center;margin-bottom:16px}
+  #status{font-size:13px;color:#555;letter-spacing:.07em;min-height:20px;text-align:center;margin-bottom:12px}
 
   /* OUTPUT */
-  #outBox{background:#111;border:1px solid #222;border-radius:10px;width:100%;max-width:700px;max-height:220px;overflow-y:auto;padding:16px;font-size:15px;line-height:1.7;color:#ccc;flex:1}
-  #outBox.falando{border-color:#39ff14;box-shadow:0 0 12px rgba(57,255,20,.15)}
+  #outBox{background:#111;border:1px solid #222;border-radius:10px;width:100%;max-width:680px;max-height:200px;overflow-y:auto;padding:14px;font-size:14px;line-height:1.7;color:#ccc;flex:1}
 
-  /* HINT */
-  #hint{margin-top:12px;font-size:11px;color:#333;letter-spacing:.06em}
+  /* RODAPÉ */
+  #footer{margin-top:10px;display:flex;justify-content:center;gap:20px}
+  #btnCopiar{display:none;padding:5px 14px;background:#1a1a1a;border:1px solid #333;color:#888;border-radius:6px;cursor:pointer;font-size:12px}
+  #btnReconfig{background:none;border:none;color:#2a2a2a;font-size:10px;cursor:pointer;font-family:monospace;letter-spacing:.05em}
+  #btnReconfig:hover{color:#555}
 
-  /* COPIAR */
-  #btnCopiar{display:none;margin-top:10px;padding:7px 18px;background:#1a1a1a;border:1px solid #333;color:#aaa;border-radius:6px;cursor:pointer;font-size:13px}
-  #btnCopiar:hover{border-color:#39ff14;color:#39ff14}
-
-  /* LOGIN */
-  #loginScreen{position:fixed;inset:0;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;gap:16px}
-  #loginScreen h1{font-size:26px;letter-spacing:.2em;color:#39ff14;text-shadow:0 0 20px #39ff14;margin-bottom:8px}
-  #loginScreen input{background:#111;border:1px solid #333;color:#e0e0e0;padding:12px 20px;font-size:17px;font-family:monospace;border-radius:8px;width:280px;text-align:center}
-  #loginScreen input:focus{outline:none;border-color:#39ff14}
-  #loginErr{color:#ff4444;font-size:13px;min-height:18px}
-  #loginScreen button{background:#39ff14;color:#000;border:none;padding:12px 40px;font-size:15px;font-weight:700;border-radius:8px;cursor:pointer;letter-spacing:.1em}
-  #loginLink{font-size:11px;color:#39ff14;opacity:.6;text-decoration:none;letter-spacing:.05em}
-
+  #hint{margin-top:8px;font-size:10px;color:#2a2a2a;letter-spacing:.05em}
 </style>
 </head>
 <body>
@@ -48,33 +52,57 @@
 <!-- LOGIN -->
 <div id="loginScreen">
   <h1>BIOS PLÁ</h1>
-  <div style="color:#444;font-size:11px;letter-spacing:.1em;margin-bottom:4px">ESTÚDIO PLÁ · ACESSO RESTRITO</div>
+  <div style="color:#444;font-size:11px;letter-spacing:.1em">ESTÚDIO PLÁ · ACESSO RESTRITO</div>
   <input id="loginUser" type="text" placeholder="usuário" autocomplete="off">
   <input id="loginPass" type="password" placeholder="senha" autocomplete="off">
   <input id="loginKey" type="password" placeholder="API Key" autocomplete="off" onkeydown="if(event.key==='Enter')entrar()">
-  <a href="https://aistudio.google.com/app/apikey" target="_blank" class="loginLink">Gere ou adquira sua chave em aistudio.google.com</a>
+  <a href="https://aistudio.google.com/app/apikey" target="_blank" id="loginLink">Gere ou adquira sua chave em aistudio.google.com</a>
   <div id="loginErr"></div>
   <button onclick="entrar()">ENTRAR</button>
 </div>
 
 <!-- MAIN -->
-<div id="mainApp" style="display:none;flex-direction:column;align-items:center;width:100vw;height:100vh;padding:20px">
-  <div id="header">BIOS PLÁ v2.0.0 · ESTÚDIO PLÁ · Kaue Ferreira Moraes</div>
+<div id="mainApp">
+  <div id="header">BIOS PLÁ v2.3.0 · ESTÚDIO PLÁ · Kaue Ferreira Moraes</div>
 
   <div id="gonioWrap">
-    <canvas id="gonioCanvas" width="280" height="280"></canvas>
-    <div id="gonioLabel">BIOS PLÁ<br><span id="gonioMode" style="font-size:11px;color:#555">AGUARDANDO</span></div>
+    <canvas id="gonioCanvas" width="260" height="260"></canvas>
+    <div id="gonioLabel">BIOS PLÁ<br><span id="gonioMode" style="font-size:10px;color:#555">AGUARDANDO</span></div>
+  </div>
+
+  <div id="voiceSelector">
+    <button class="vbtn active" id="v1btn" onclick="setVoz(1)">VOZ 1</button>
+    <button class="vbtn" id="v2btn" onclick="setVoz(2)">VOZ 2</button>
   </div>
 
   <div id="status">Segure ESPAÇO para falar</div>
   <div id="outBox">Aguardando Kaue...</div>
-  <button id="btnCopiar" onclick="copiar()">📋 Copiar</button>
-  <div id="hint">ESPAÇO · segurar = falar · soltar = enviar</div>
+
+  <div id="footer">
+    <button id="btnCopiar" onclick="copiar()">📋 Copiar</button>
+    <button id="btnReconfig" onclick="reconfigurar()">⚙ reconfigurar</button>
+  </div>
+  <div id="hint">[ ESPAÇO ] segurar = falar · soltar = enviar</div>
 </div>
 
 <script>
+// ══════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════
 let GEMINI_KEY = '';
+const GH_TOKEN  = '';
+const GH_REPO   = 'estudio-pla/bios-pla';
+const LS_KEY    = 'biospla_creds';
 
+const VOZES = {
+  1: { name:'Algieba', note:'Leia em português brasileiro. Voz masculina, profissional, cadência de locução. Tom: técnico e claro. Transcript:' },
+  2: { name:'Aoede',   note:'Leia em português brasileiro. Voz feminina, cálida e profissional. Cadência natural e conversacional. Transcript:' }
+};
+let vozAtiva = 1;
+
+// ══════════════════════════════════════════════
+// LOGIN + LOCALSTORAGE
+// ══════════════════════════════════════════════
 function entrar() {
   const u = document.getElementById('loginUser').value.trim().toLowerCase();
   const p = document.getElementById('loginPass').value.trim();
@@ -82,66 +110,98 @@ function entrar() {
   if (u === 'euakox' && p === '364520') {
     if (!k) { document.getElementById('loginErr').textContent = 'Insira a API Key.'; return; }
     GEMINI_KEY = k;
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('mainApp').style.display = 'flex';
-    iniciar();
+    localStorage.setItem(LS_KEY, JSON.stringify({u,p,k}));
+    abrirApp();
   } else {
     document.getElementById('loginErr').textContent = 'Acesso negado.';
     setTimeout(()=>document.getElementById('loginErr').textContent='', 2000);
   }
 }
 
-const EL_KEY = '';
-const EL_VOICE = 'ybQssgFvEJA3tBLKGwPs';
-
-// ══════════════════════════════════════════════
-// CONFIG
-// ══════════════════════════════════════════════
-// GEMINI_KEY via login = 'AIzaSyDqVohSeDhCFOH558u9SVMJCgi4FAGOvaQ';
-const GH_TOKEN = '';
-const GH_REPO    = 'estudio-pla/bios-pla';
-
-// ══════════════════════════════════════════════
-// LOGIN
-// ══════════════════════════════════════════════
-
-// ══════════════════════════════════════════════
-// VOZ MASCULINA
-// ══════════════════════════════════════════════
-let vozMasc = null;
-function carregarVoz() {
-  const vozes = speechSynthesis.getVoices();
-  const femininos = /female|feminin|woman|girl|lucia|vitoria|francisca/i;
-  vozMasc = vozes.find(v => v.lang === 'pt-BR' && /male|masculin|masc|daniel|ricardo|antonio/i.test(v.name))
-         || vozes.find(v => v.lang === 'pt-BR' && !femininos.test(v.name))
-         || vozes.find(v => v.lang.startsWith('pt') && !femininos.test(v.name))
-         || vozes.find(v => !femininos.test(v.name))
-         || vozes[0];
+function reconfigurar() {
+  localStorage.removeItem(LS_KEY);
+  GEMINI_KEY = '';
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  ['loginUser','loginPass','loginKey'].forEach(id=>document.getElementById(id).value='');
 }
-speechSynthesis.onvoiceschanged = carregarVoz;
+
+function abrirApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'flex';
+  iniciar();
+}
+
+// ══════════════════════════════════════════════
+// SELETOR DE VOZ
+// ══════════════════════════════════════════════
+function setVoz(n) {
+  vozAtiva = n;
+  document.getElementById('v1btn').className = 'vbtn' + (n===1?' active':'');
+  document.getElementById('v2btn').className = 'vbtn' + (n===2?' active':'');
+  localStorage.setItem('biospla_voz', n);
+}
+
+// ══════════════════════════════════════════════
+// GEMINI TTS
+// ══════════════════════════════════════════════
+function pcmToWav(pcmBase64, rate=24000) {
+  const pcm = Uint8Array.from(atob(pcmBase64), c=>c.charCodeAt(0));
+  const buf = new ArrayBuffer(44 + pcm.length);
+  const v = new DataView(buf);
+  const s = (o,n,l=4)=>{ for(let i=0;i<l;i++) v.setUint8(o+i,n.charCodeAt(i)); };
+  s(0,'RIFF'); v.setUint32(4,36+pcm.length,true); s(8,'WAVE');
+  s(12,'fmt '); v.setUint32(16,16,true); v.setUint16(20,1,true);
+  v.setUint16(22,1,true); v.setUint32(24,rate,true);
+  v.setUint32(28,rate*2,true); v.setUint16(32,2,true); v.setUint16(34,16,true);
+  s(36,'data'); v.setUint32(40,pcm.length,true);
+  new Uint8Array(buf).set(pcm,44);
+  return new Uint8Array(buf);
+}
+
+function parseMime(mime) {
+  let rate=24000;
+  mime.split(';').forEach(p=>{
+    p=p.trim();
+    if(p.toLowerCase().startsWith('rate=')) rate=parseInt(p.split('=')[1])||24000;
+  });
+  return rate;
+}
 
 async function falar(texto, cb) {
+  const voz = VOZES[vozAtiva];
+  const prompt = voz.note + ' ' + '\u00A0\u00A0' + texto;
   try {
     const res = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${EL_VOICE}`,
-      { method:'POST',
-        headers:{'xi-api-key':EL_KEY,'Content-Type':'application/json'},
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:generateContent?key=${GEMINI_KEY}`,
+      { method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({
-          text: '\u00A0\u00A0' + texto,
-          model_id: 'eleven_multilingual_v2',
-          voice_settings: {stability:0.5,similarity_boost:0.75,style:0.3,use_speaker_boost:true}
+          contents:[{parts:[{text:prompt}]}],
+          generationConfig:{
+            responseModalities:['AUDIO'],
+            speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:voz.name}}}
+          }
         })
       }
     );
-    const blob = await res.blob();
-    const url  = URL.createObjectURL(blob);
-    const aud  = new Audio(url);
-    aud.onended = () => { URL.revokeObjectURL(url); if(cb) cb(); };
-    await aud.play();
+    const d = await res.json();
+    const part = d.candidates?.[0]?.content?.parts?.[0];
+    if (part?.inlineData?.data) {
+      const rate = parseMime(part.inlineData.mimeType||'audio/L16;rate=24000');
+      const wav  = pcmToWav(part.inlineData.data, rate);
+      const blob = new Blob([wav], {type:'audio/wav'});
+      const url  = URL.createObjectURL(blob);
+      const aud  = new Audio(url);
+      aud.onended = ()=>{ URL.revokeObjectURL(url); if(cb)cb(); };
+      await aud.play();
+      return;
+    }
+    throw new Error('sem áudio');
   } catch(e) {
-    const u = new SpeechSynthesisUtterance('\u00A0\u00A0' + texto);
-    u.lang = 'pt-BR'; u.pitch = 0.4; u.rate = 0.95;
-    if (cb) u.onend = cb;
+    console.warn('TTS falhou, usando Web Speech:', e);
+    const u = new SpeechSynthesisUtterance('\u00A0\u00A0'+texto);
+    u.lang='pt-BR'; u.pitch=0.4; u.rate=0.95;
+    if(cb) u.onend=cb;
     speechSynthesis.speak(u);
   }
 }
@@ -149,249 +209,177 @@ async function falar(texto, cb) {
 // ══════════════════════════════════════════════
 // GONIÔMETRO
 // ══════════════════════════════════════════════
-const canvas = document.getElementById('gonioCanvas');
-const ctx    = canvas.getContext('2d');
-let nivel = 0, alvo = 0, animId;
+const canvas=document.getElementById('gonioCanvas');
+const ctx=canvas.getContext('2d');
+let nivel=0, alvo=0;
 
 function desenharGonio() {
-  const W = 280, H = 280, cx = 140, cy = 140, r = 120;
-  ctx.clearRect(0, 0, W, H);
-
-  // Fundo
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI*2);
-  ctx.fillStyle = '#0f0f0f';
-  ctx.fill();
-
-  // Arcos de nível
-  const cores = ['#1a3a1a','#1e4d1e','#22661e','#39ff14'];
-  for (let i = 0; i < 4; i++) {
-    const pct = Math.min(nivel / (i+1===4?1:.75), 1);
-    if (nivel > i*.25) {
-      ctx.beginPath();
-      ctx.arc(cx, cy, r - 10 - i*18, -Math.PI/2, -Math.PI/2 + Math.PI*2*Math.min((nivel-.25*i)/.25,1));
-      ctx.strokeStyle = cores[i];
-      ctx.lineWidth = 14;
-      ctx.stroke();
+  const W=260,H=260,cx=130,cy=130,r=118;
+  ctx.clearRect(0,0,W,H);
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle='#0f0f0f'; ctx.fill();
+  const cores=['#1a3a1a','#1e4d1e','#22661e','#39ff14'];
+  for(let i=0;i<4;i++){
+    if(nivel>i*.25){
+      const ext=Math.min((nivel-i*.25)/.25,1)*359.9;
+      const ri=r-8-i*17;
+      ctx.beginPath(); ctx.arc(cx,cy,ri,-Math.PI/2,-Math.PI/2+ext*Math.PI/180);
+      ctx.strokeStyle=cores[i]; ctx.lineWidth=12; ctx.stroke();
     }
   }
-
-  // Círculo central pulsante
-  const pulse = .7 + nivel*.5;
-  ctx.beginPath();
-  ctx.arc(cx, cy, 18*pulse, 0, Math.PI*2);
-  ctx.fillStyle = nivel > .1 ? `rgba(57,255,20,${.3+nivel*.7})` : '#1a1a1a';
-  ctx.fill();
-
-  nivel += (alvo - nivel) * .12;
-  animId = requestAnimationFrame(desenharGonio);
+  const pulse=.7+nivel*.5;
+  ctx.beginPath(); ctx.arc(cx,cy,16*pulse,0,Math.PI*2);
+  ctx.fillStyle=nivel>.1?`rgba(57,255,20,${.3+nivel*.7})`:'#1a1a1a'; ctx.fill();
+  nivel+=(alvo-nivel)*.1;
+  requestAnimationFrame(desenharGonio);
 }
 
-// ══════════════════════════════════════════════
-// MIC + STT
-// ══════════════════════════════════════════════
-let recognition = null, micAtivo = false, textoCapturado = '';
-
-function initRec() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) return null;
-  const r = new SR();
-  r.lang = 'pt-BR'; r.continuous = true; r.interimResults = false;
-  r.onresult = ev => {
-    textoCapturado += Array.from(ev.results).slice(ev.resultIndex)
-      .filter(x=>x.isFinal).map(x=>x[0].transcript).join(' ');
-  };
-  r.onerror = () => { micAtivo = false; alvo = 0; setStatus('Erro no microfone'); };
-  r.onend   = () => { if (micAtivo) try{r.start()}catch(e){} };
-  return r;
-}
+function setStatus(t){document.getElementById('status').textContent=t}
+function setMode(t){document.getElementById('gonioMode').textContent=t}
 
 // ══════════════════════════════════════════════
-// BIOS / GITHUB
+// GEMINI (TEXTO)
 // ══════════════════════════════════════════════
-let reptiliano = [], amigdala = [];
+let reptiliano=[], amigdala=[];
 
 async function ghGet(path) {
-  const res = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${path}`,
+  if(!GH_TOKEN) return null;
+  const res=await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${path}`,
     {headers:{'Authorization':`Bearer ${GH_TOKEN}`,'Accept':'application/vnd.github.v3+json'}});
-  if (!res.ok) return null;
-  const d = await res.json();
+  if(!res.ok) return null;
+  const d=await res.json();
   return JSON.parse(decodeURIComponent(escape(atob(d.content))));
 }
 
-async function ghSalvar(texto, pergunta) {
-  if (!GH_TOKEN) return;
-  const ts = new Date().toLocaleString('pt-BR');
-  const linha = `\n---\n[${ts}]\nKaue: ${pergunta}\nBIOS: ${texto}\n`;
-  const path = 'registros/sessao-ativa.txt';
-  const url  = `https://api.github.com/repos/${GH_REPO}/contents/${path}`;
-  const headers = {'Authorization':`Bearer ${GH_TOKEN}`,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'};
-  let sha='', atual='';
-  try {
-    const r = await fetch(url,{headers});
-    if (r.ok){const d=await r.json();sha=d.sha;atual=atob(d.content.replace(/\n/g,''));}
-  } catch(e){}
-  const novo = atual + linha;
-  await fetch(url,{method:'PUT',headers,body:JSON.stringify({message:`sessao: ${ts}`,content:btoa(unescape(encodeURIComponent(novo))),sha:sha||undefined})});
-}
-
-async function balancoDia() {
-  try {
-    const res = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/registros/sessao-ativa.txt`,
-      {headers:{'Authorization':`Bearer ${GH_TOKEN}`}});
-    if (!res.ok) return 'Sem registros de hoje ainda.';
-    const d = await res.json();
-    const txt = atob(d.content.replace(/\n/g,''));
-    const linhas = txt.split('\n').filter(Boolean);
-    const qtd = linhas.filter(l=>l.startsWith('[') || l.startsWith('Kaue:')).length;
-    return `Hoje tivemos ${Math.floor(qtd/2)} interações registradas.`;
-  } catch(e){ return ''; }
-}
-
-// ══════════════════════════════════════════════
-// GEMINI
-// ══════════════════════════════════════════════
 function buildPrompt() {
-  const L1 = reptiliano.map(r=>`• [${r.id}] ${r.titulo}: ${r.via_maquina}`).join('\n') || '(não conectado)';
-  const Le = amigdala.filter(e=>e.prioridade==='estrutural').map(e=>`• ${e.titulo}: ${e.regra_derivada||e.conteudo}`).join('\n')||'(nenhuma)';
-  const Lp = amigdala.filter(e=>e.prioridade!=='estrutural').map(e=>`• ${e.titulo}: ${e.conteudo}`).join('\n')||'(nenhuma)';
-  return `Você é o BIOS PLÁ, assistente do Estúdio Plá de Kaue Ferreira Moraes (Bauru SP).\nResponda em português, texto limpo, sem asteriscos, hashtags ou markdown.\nSeja direto e técnico.\n\nL1 REPTILIANO:\n${L1}\nL2 ESTRUTURAL:\n${Le}\nL2 PONTUAL:\n${Lp}`;
+  const L1=reptiliano.map(r=>`• [${r.id}] ${r.titulo}: ${r.via_maquina}`).join('\n')||'';
+  return `Você é o BIOS PLÁ, assistente de Kaue Ferreira Moraes (Estúdio Plá, Bauru SP).\nResponda em português, sem markdown, direto e técnico.\nL1:\n${L1}`;
 }
 
 async function enviarGemini(texto) {
-  // Descobre modelo ativo
-  const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_KEY}`);
-  const listData = await listRes.json();
-  if (!listRes.ok) throw new Error(listData.error?.message || 'Chave inválida');
-  const modelos = listData.models.filter(m =>
-    m.supportedGenerationMethods?.includes('generateContent') && m.name.includes('gemini')
-  );
-  if (!modelos.length) throw new Error('Nenhum modelo disponível');
-  const modelo = modelos[0].name;
-
-  // Monta prompt com sistema embutido no texto
-  const promptFull = buildPrompt() + '\n\nTAREFA DO USUÁRIO:\n' + texto;
-
-  const res = await fetch(
+  const listRes=await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_KEY}`);
+  const listData=await listRes.json();
+  if(!listRes.ok) throw new Error(listData.error?.message||'Chave inválida');
+  const modelos=listData.models.filter(m=>m.supportedGenerationMethods?.includes('generateContent')&&m.name.includes('gemini'));
+  if(!modelos.length) throw new Error('Nenhum modelo disponível');
+  const modelo=modelos[0].name;
+  const res=await fetch(
     `https://generativelanguage.googleapis.com/v1beta/${modelo}:generateContent?key=${GEMINI_KEY}`,
     {method:'POST',headers:{'Content-Type':'application/json'},
-     body:JSON.stringify({contents:[{parts:[{text:promptFull}]}]})});
-  if (!res.ok) { const e=await res.json(); throw new Error(e.error?.message||'Erro Gemini'); }
-  const d = await res.json();
-  let r = d.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  r = r.replace(/#{1,6}\s*/g,'').replace(/\*\*([^*]+)\*\*/g,'$1').replace(/\*([^*]+)\*/g,'$1').replace(/^[-*]\s+/gm,'').trim();
+     body:JSON.stringify({contents:[{parts:[{text:buildPrompt()+'\n\nTAREFA:\n'+texto}]}]})});
+  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'Erro Gemini');}
+  const d=await res.json();
+  let r=d.candidates?.[0]?.content?.parts?.[0]?.text||'';
+  r=r.replace(/#{1,6}\s*/g,'').replace(/\*\*([^*]+)\*\*/g,'$1').replace(/\*([^*]+)\*/g,'$1').replace(/^[-*]\s+/gm,'').trim();
   return r;
 }
 
-// ══════════════════════════════════════════════
-// FLUXO PRINCIPAL
-// ══════════════════════════════════════════════
-function setStatus(t) { document.getElementById('status').textContent = t; }
-function setMode(t)   { document.getElementById('gonioMode').textContent = t; }
-
-async function processar() {
-  if (!textoCapturado.trim()) { setStatus('Não ouvi nada. Tente novamente.'); return; }
-  const pergunta = textoCapturado.trim();
-  textoCapturado = '';
-
-  const out = document.getElementById('outBox');
-  out.classList.remove('falando');
-  out.textContent = 'Processando...';
-  document.getElementById('btnCopiar').style.display = 'none';
-
-  setStatus('Ok Kaue, processando...');
-  setMode('PROCESSANDO');
-  alvo = .4;
-  falar('Ok Cauê, processando seu pedido');
-
-  try {
-    // Balanço rápido enquanto processa
-    const bal = await balancoDia();
-
-    const resposta = await enviarGemini(pergunta);
-
-    // Salva
-    ghSalvar(resposta, pergunta);
-
-    // Exibe
-    out.textContent = resposta;
-    out.classList.add('falando');
-    document.getElementById('btnCopiar').style.display = 'inline-block';
-
-    // Fala balanço + resposta
-    alvo = .9;
-    setMode('FALANDO');
-    const textoVoz = (bal ? bal + '. ' : '') + resposta;
-    falar(textoVoz, () => { alvo = 0; setMode('AGUARDANDO'); out.classList.remove('falando'); });
-
-    setStatus('Segure ESPAÇO para nova mensagem');
-  } catch(e) {
-    out.textContent = 'ERRO: ' + e.message;
-    setStatus('Erro — tente novamente');
-    alvo = 0;
-  }
-}
-
-function copiar() {
-  const txt = document.getElementById('outBox').textContent;
+function copiar(){
+  const txt=document.getElementById('outBox').textContent;
   navigator.clipboard.writeText(txt);
-  document.getElementById('btnCopiar').textContent = '✓ Copiado';
+  document.getElementById('btnCopiar').textContent='✓ Copiado';
   setTimeout(()=>document.getElementById('btnCopiar').textContent='📋 Copiar',2000);
 }
 
 // ══════════════════════════════════════════════
 // ESPAÇO PTT
 // ══════════════════════════════════════════════
-document.addEventListener('keydown', e => {
-  if (e.code==='Space' && !e.repeat) {
-    const tag = document.activeElement.tagName;
-    if (tag==='INPUT'||tag==='TEXTAREA') return;
+let recognition=null, micAtivo=false, textoCapturado='';
+
+function initRec(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR) return null;
+  const r=new SR(); r.lang='pt-BR'; r.continuous=true; r.interimResults=false;
+  r.onresult=ev=>{
+    textoCapturado+=Array.from(ev.results).slice(ev.resultIndex).filter(x=>x.isFinal).map(x=>x[0].transcript).join(' ');
+  };
+  r.onerror=()=>{micAtivo=false;alvo=0;setStatus('Erro no microfone')};
+  r.onend=()=>{if(micAtivo)try{r.start()}catch(e){}};
+  return r;
+}
+
+async function processar(){
+  const pergunta=textoCapturado.trim(); textoCapturado='';
+  if(!pergunta){setStatus('Não ouvi nada. Tente novamente.');alvo=0;setMode('AGUARDANDO');return;}
+  const out=document.getElementById('outBox');
+  out.textContent='Processando...';
+  document.getElementById('btnCopiar').style.display='none';
+  setStatus('Ok Kaue, processando...');setMode('PROCESSANDO');alvo=.4;
+  falar('Ok Cauê, processando');
+  try{
+    const resposta=await enviarGemini(pergunta);
+    out.textContent=resposta;
+    document.getElementById('btnCopiar').style.display='inline-block';
+    alvo=.9;setMode('FALANDO');
+    falar(resposta,()=>{alvo=0;setMode('AGUARDANDO');});
+    setStatus('Segure ESPAÇO para nova mensagem');
+  } catch(e){
+    out.textContent='ERRO: '+e.message;
+    setStatus('Erro — tente novamente');alvo=0;setMode('AGUARDANDO');
+  }
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'&&!e.repeat){
+    const tag=document.activeElement.tagName;
+    if(tag==='INPUT'||tag==='TEXTAREA') return;
     e.preventDefault();
-    if (!micAtivo) {
-      if (!recognition) recognition = initRec();
-      if (!recognition) return;
-      micAtivo = true; textoCapturado = '';
-      try { recognition.start(); } catch(err){}
-      alvo = .6; setStatus('Ouvindo Kaue...'); setMode('OUVINDO');
+    if(!micAtivo){
+      if(!recognition) recognition=initRec();
+      if(!recognition) return;
+      micAtivo=true; textoCapturado='';
+      try{recognition.start()}catch(er){}
+      alvo=.7;setStatus('Ouvindo Kaue...');setMode('OUVINDO');
     }
   }
 });
 
-document.addEventListener('keyup', e => {
-  if (e.code==='Space') {
-    if (!micAtivo) return;
+document.addEventListener('keyup',e=>{
+  if(e.code==='Space'){
+    if(!micAtivo) return;
     e.preventDefault();
-    micAtivo = false;
-    if (recognition) recognition.stop();
-    alvo = .2; setStatus('Enviando...'); setMode('ENVIANDO');
-    setTimeout(processar, 700);
+    micAtivo=false;
+    if(recognition) recognition.stop();
+    alvo=.2;setStatus('Enviando...');setMode('ENVIANDO');
+    setTimeout(processar,700);
   }
 });
 
 // ══════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════
-async function iniciar() {
+async function iniciar(){
   desenharGonio();
-  carregarVoz();
-
+  // Restaura voz salva
+  const vSaved=localStorage.getItem('biospla_voz');
+  if(vSaved) setVoz(parseInt(vSaved));
   // Carrega memória
-  try {
-    const rep = await ghGet('reptiliano.json');
-    if (rep) reptiliano = rep.regras || [];
-    const ami = await ghGet('amigdala.json');
-    if (ami) amigdala = ami.entradas || [];
+  try{
+    const rep=await ghGet('reptiliano.json');
+    if(rep) reptiliano=rep.regras||[];
   } catch(e){}
-
   setStatus('Preparando...');
-  await new Promise(r=>setTimeout(r,800));
-
-  // Boas-vindas
-  alvo = .5;
-  falar('Olá, bem-vindo Cauê. Tudo bem? No que posso ajudar?', ()=>{ alvo=0; });
-  setStatus('Segure ESPAÇO para falar');
-  setMode('AGUARDANDO');
+  await new Promise(r=>setTimeout(r,600));
+  alvo=.5;
+  falar('Olá, bem-vindo Cauê. No que posso ajudar?',()=>{alvo=0;});
+  setStatus('Segure ESPAÇO para falar');setMode('AGUARDANDO');
 }
+
+// Verifica localStorage ao carregar
+window.addEventListener('load',()=>{
+  const saved=localStorage.getItem(LS_KEY);
+  if(saved){
+    try{
+      const {u,p,k}=JSON.parse(saved);
+      if(u==='euakox'&&p==='364520'&&k){
+        GEMINI_KEY=k;
+        abrirApp();
+        return;
+      }
+    } catch(e){}
+  }
+  // Mostra login normalmente
+  document.getElementById('loginScreen').style.display='flex';
+});
 </script>
 </body>
 </html>
