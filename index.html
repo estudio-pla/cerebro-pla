@@ -31,12 +31,34 @@
   /* COPIAR */
   #btnCopiar{display:none;margin-top:10px;padding:7px 18px;background:#1a1a1a;border:1px solid #333;color:#aaa;border-radius:6px;cursor:pointer;font-size:13px}
   #btnCopiar:hover{border-color:#39ff14;color:#39ff14}
+
+  /* LOGIN */
+  #loginScreen{position:fixed;inset:0;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;gap:16px}
+  #loginScreen h1{font-size:26px;letter-spacing:.2em;color:#39ff14;text-shadow:0 0 20px #39ff14;margin-bottom:8px}
+  #loginScreen input{background:#111;border:1px solid #333;color:#e0e0e0;padding:12px 20px;font-size:17px;font-family:monospace;border-radius:8px;width:280px;text-align:center}
+  #loginScreen input:focus{outline:none;border-color:#39ff14}
+  #loginErr{color:#ff4444;font-size:13px;min-height:18px}
+  #loginScreen button{background:#39ff14;color:#000;border:none;padding:12px 40px;font-size:15px;font-weight:700;border-radius:8px;cursor:pointer;letter-spacing:.1em}
+  #loginLink{font-size:11px;color:#39ff14;opacity:.6;text-decoration:none;letter-spacing:.05em}
+
 </style>
 </head>
 <body>
 
+<!-- LOGIN -->
+<div id="loginScreen">
+  <h1>BIOS PLÁ</h1>
+  <div style="color:#444;font-size:11px;letter-spacing:.1em;margin-bottom:4px">ESTÚDIO PLÁ · ACESSO RESTRITO</div>
+  <input id="loginUser" type="text" placeholder="usuário" autocomplete="off">
+  <input id="loginPass" type="password" placeholder="senha" autocomplete="off">
+  <input id="loginKey" type="password" placeholder="API Key" autocomplete="off" onkeydown="if(event.key==='Enter')entrar()">
+  <a href="https://aistudio.google.com/app/apikey" target="_blank" class="loginLink">Gere ou adquira sua chave em aistudio.google.com</a>
+  <div id="loginErr"></div>
+  <button onclick="entrar()">ENTRAR</button>
+</div>
+
 <!-- MAIN -->
-<div id="mainApp" style="display:flex;flex-direction:column;align-items:center;width:100vw;height:100vh;padding:20px">
+<div id="mainApp" style="display:none;flex-direction:column;align-items:center;width:100vw;height:100vh;padding:20px">
   <div id="header">BIOS PLÁ v2.0.0 · ESTÚDIO PLÁ · Kaue Ferreira Moraes</div>
 
   <div id="gonioWrap">
@@ -51,15 +73,32 @@
 </div>
 
 <script>
+let GEMINI_KEY = '';
 
-const EL_KEY   = '';
+function entrar() {
+  const u = document.getElementById('loginUser').value.trim().toLowerCase();
+  const p = document.getElementById('loginPass').value.trim();
+  const k = document.getElementById('loginKey').value.trim();
+  if (u === 'euakox' && p === '364520') {
+    if (!k) { document.getElementById('loginErr').textContent = 'Insira a API Key.'; return; }
+    GEMINI_KEY = k;
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'flex';
+    iniciar();
+  } else {
+    document.getElementById('loginErr').textContent = 'Acesso negado.';
+    setTimeout(()=>document.getElementById('loginErr').textContent='', 2000);
+  }
+}
+
+const EL_KEY = '';
 const EL_VOICE = 'ybQssgFvEJA3tBLKGwPs';
 
 // ══════════════════════════════════════════════
 // CONFIG
 // ══════════════════════════════════════════════
-const GEMINI_KEY = '';
-const GH_TOKEN   = '';
+// GEMINI_KEY via login = 'AIzaSyDqVohSeDhCFOH558u9SVMJCgi4FAGOvaQ';
+const GH_TOKEN = '';
 const GH_REPO    = 'estudio-pla/bios-pla';
 
 // ══════════════════════════════════════════════
