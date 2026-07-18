@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BIOS PLÁ — v2.4.0</title>
+<title>BIOS PLÁ — v2.5.0</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%230a0a0a'/><circle cx='50' cy='50' r='40' fill='none' stroke='%2339ff14' stroke-width='4' opacity='0.35'/><circle cx='50' cy='50' r='26' fill='%2339ff14'/></svg>">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -81,7 +81,7 @@ body{background:#0a0a0a;color:#e0e0e0;font-family:'Courier New',monospace;height
 </div>
 
 <!-- HEADER -->
-<div id="header">BIOS PLÁ v2.4.0 · ESTÚDIO PLÁ · Kaue Ferreira Moraes</div>
+<div id="header">BIOS PLÁ v2.5.0 · ESTÚDIO PLÁ · Kaue Ferreira Moraes</div>
 
 <!-- GONIÔMETRO -->
 <div id="gonioWrap">
@@ -93,6 +93,7 @@ body{background:#0a0a0a;color:#e0e0e0;font-family:'Courier New',monospace;height
 <div id="controls">
   <button class="vbtn active" id="v1btn" onclick="setVoz(1)">VOZ 1</button>
   <button class="vbtn" id="v2btn" onclick="setVoz(2)">VOZ 2</button>
+  <button class="vbtn" id="v3btn" onclick="setVoz(3)">VOZ 3</button>
   <div id="sep"></div>
   <button id="btnPlay" disabled title="Clique: play/pause · Duplo clique: stop">▶</button>
 </div>
@@ -126,8 +127,9 @@ const LS_SESS   = 'biospla_session';
 const LS_VOZ    = 'biospla_voz';
 
 const VOZES = {
-  1: {name:'Algieba', note:'Leia em português brasileiro. Voz masculina, profissional, cadência de locução de rádio. Tom técnico e claro. Transcript:'},
-  2: {name:'Aoede',   note:'Leia em português brasileiro. Voz feminina, calorosa e profissional. Cadência natural e conversacional. Transcript:'}
+  1: {name:'Algieba', type:'gemini',     note:'Leia em português brasileiro. Voz masculina, profissional, cadência de locução de rádio. Tom técnico e claro. Transcript:'},
+  2: {name:'Aoede',   type:'gemini',     note:'Leia em português brasileiro. Voz feminina, calorosa e profissional. Cadência natural e conversacional. Transcript:'},
+  3: {name:'Lisa Caster', type:'elevenlabs', voice_id:'7mdKVx4Fiqnbkw3z8HzM', api_key:''}
 };
 let vozAtiva = 1;
 
@@ -190,6 +192,7 @@ function setVoz(n) {
   vozAtiva=n;
   document.getElementById('v1btn').className='vbtn'+(n===1?' active':'');
   document.getElementById('v2btn').className='vbtn'+(n===2?' active':'');
+  document.getElementById('v3btn').className='vbtn'+(n===3?' active':'');
   localStorage.setItem(LS_VOZ, n);
 }
 
@@ -252,24 +255,44 @@ function parseMime(m) {
 async function gerarAudio(texto) {
   updatePlayBtn('disabled');
   const voz = VOZES[vozAtiva];
-  const prompt = voz.note + ' \u00A0\u00A0' + texto;
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:generateContent?key=${GEMINI_KEY}`,
-    {method:'POST', headers:{'Content-Type':'application/json'},
-     body:JSON.stringify({
-       contents:[{parts:[{text:prompt}]}],
-       generationConfig:{responseModalities:['AUDIO'],
-         speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:voz.name}}}}
-     })}
-  );
-  const d = await res.json();
-  if (!res.ok) throw new Error(d.error?.message||'Erro TTS');
-  const part = d.candidates?.[0]?.content?.parts?.[0];
-  if (!part?.inlineData?.data) throw new Error('Áudio não retornado');
-  const rate = parseMime(part.inlineData.mimeType||'audio/L16;rate=24000');
-  const wav  = pcmToWav(part.inlineData.data, rate);
-  const blob = new Blob([wav],{type:'audio/wav'});
-  const url  = URL.createObjectURL(blob);
+
+  let blob;
+  if (voz.type === 'elevenlabs') {
+    // ElevenLabs TTS — Lisa Caster
+    const res = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${voz.voice_id}`,
+      { method:'POST',
+        headers:{'xi-api-key':voz.api_key,'Content-Type':'application/json'},
+        body: JSON.stringify({
+          text: '\u00A0\u00A0' + texto,
+          model_id: 'eleven_multilingual_v2',
+          voice_settings: {stability:0.5,similarity_boost:0.75,style:0.3,use_speaker_boost:true}
+        })
+      }
+    );
+    if (!res.ok) { const e=await res.json(); throw new Error(e.detail?.message||'Erro ElevenLabs'); }
+    blob = await res.blob();
+  } else {
+    // Gemini TTS — Algieba ou Aoede
+    const prompt = voz.note + ' \u00A0\u00A0' + texto;
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:generateContent?key=${GEMINI_KEY}`,
+      {method:'POST', headers:{'Content-Type':'application/json'},
+       body:JSON.stringify({
+         contents:[{parts:[{text:prompt}]}],
+         generationConfig:{responseModalities:['AUDIO'],
+           speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:voz.name}}}}
+       })}
+    );
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error?.message||'Erro TTS Gemini');
+    const part = d.candidates?.[0]?.content?.parts?.[0];
+    if (!part?.inlineData?.data) throw new Error('Áudio não retornado');
+    const rate = parseMime(part.inlineData.mimeType||'audio/L16;rate=24000');
+    blob = new Blob([pcmToWav(part.inlineData.data, rate)],{type:'audio/wav'});
+  }
+
+  const url = URL.createObjectURL(blob);
   if (currentAudio) { currentAudio.pause(); URL.revokeObjectURL(currentAudio._url||''); }
   currentAudio = new Audio(url);
   currentAudio._url = url;
