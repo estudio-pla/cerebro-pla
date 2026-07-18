@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BIOS PLÁ — v2.5.0</title>
+<title>BIOS PLÁ — v2.6.0</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%230a0a0a'/><circle cx='50' cy='50' r='40' fill='none' stroke='%2339ff14' stroke-width='4' opacity='0.35'/><circle cx='50' cy='50' r='26' fill='%2339ff14'/></svg>">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -57,6 +57,7 @@ body{background:#0a0a0a;color:#e0e0e0;font-family:'Courier New',monospace;height
 #hint{font-size:10px;color:#222;letter-spacing:.04em;flex:1;text-align:center}
 #btnReconfig{background:none;border:none;color:#222;font-size:10px;cursor:pointer;font-family:monospace;letter-spacing:.04em}
 #btnReconfig:hover{color:#555}
+#btnCamadas:hover{color:#555}
 </style>
 </head>
 <body>
@@ -81,7 +82,24 @@ body{background:#0a0a0a;color:#e0e0e0;font-family:'Courier New',monospace;height
 </div>
 
 <!-- HEADER -->
-<div id="header">BIOS PLÁ v2.5.0 · ESTÚDIO PLÁ · Kaue Ferreira Moraes</div>
+<div id="header">BIOS PLÁ v2.6.0 · ESTÚDIO PLÁ · Kaue Ferreira Moraes</div>
+
+<!-- CAMADAS (K1-K4) -->
+<div id="camadasOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:90;align-items:center;justify-content:center">
+  <div style="background:#111;border:1px solid #222;border-radius:10px;padding:24px;width:300px;display:flex;flex-direction:column;gap:10px">
+    <div style="color:#39ff14;font-size:11px;letter-spacing:.15em;text-align:center;margin-bottom:6px">CAMADAS · CHAVES SEPARADAS</div>
+    <div style="color:#444;font-size:10px;line-height:1.5;margin-bottom:4px">K1 é obrigatória. K2/K3/K4 são opcionais — deixe em branco para desativar a camada.</div>
+    <input id="keyK1" type="password" placeholder="K1 Consciente (Gemini)" autocomplete="off" style="background:#0a0a0a;border:1px solid #333;color:#e0e0e0;padding:9px 12px;font-size:13px;font-family:monospace;border-radius:6px">
+    <input id="keyK2" type="password" placeholder="K2 Subconsciente (opcional)" autocomplete="off" style="background:#0a0a0a;border:1px solid #333;color:#e0e0e0;padding:9px 12px;font-size:13px;font-family:monospace;border-radius:6px">
+    <input id="keyK3" type="password" placeholder="K3 Inconsciente (opcional)" autocomplete="off" style="background:#0a0a0a;border:1px solid #333;color:#e0e0e0;padding:9px 12px;font-size:13px;font-family:monospace;border-radius:6px">
+    <input id="keyK4" type="password" placeholder="K4 Incognoscível (opcional)" autocomplete="off" style="background:#0a0a0a;border:1px solid #333;color:#e0e0e0;padding:9px 12px;font-size:13px;font-family:monospace;border-radius:6px">
+    <input id="keyGH" type="password" placeholder="GitHub Token — canal (opcional)" autocomplete="off" style="background:#0a0a0a;border:1px solid #333;color:#e0e0e0;padding:9px 12px;font-size:13px;font-family:monospace;border-radius:6px">
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <button onclick="salvarCamadas()" style="flex:1;background:#39ff14;color:#000;border:none;padding:9px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:12px;font-weight:700">SALVAR</button>
+      <button onclick="fecharCamadas()" style="background:none;border:1px solid #333;color:#666;padding:9px 14px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:12px">fechar</button>
+    </div>
+  </div>
+</div>
 
 <!-- GONIÔMETRO -->
 <div id="gonioWrap">
@@ -112,6 +130,7 @@ body{background:#0a0a0a;color:#e0e0e0;font-family:'Courier New',monospace;height
 <div id="footer">
   <button id="btnCopiar" onclick="copiar()">📋 Copiar</button>
   <div id="hint">[ ESPAÇO ] segurar = falar · soltar = enviar</div>
+  <button id="btnCamadas" onclick="abrirCamadas()" style="background:none;border:none;color:#222;font-size:10px;cursor:pointer;font-family:monospace;letter-spacing:.04em">🧠 camadas</button>
   <button id="btnReconfig" onclick="reconfigurar()">⚙ reconfigurar</button>
 </div>
 
@@ -125,6 +144,134 @@ const GH_REPO   = 'estudio-pla/bios-pla';
 const LS_CREDS  = 'biospla_creds';
 const LS_SESS   = 'biospla_session';
 const LS_VOZ    = 'biospla_voz';
+const LS_KEYS   = 'biospla_keys';
+
+// ══════════════════════════════════════════════════
+// CAMADAS K1-K4 — Consciente/Subconsciente/Inconsciente/Incognoscível
+// ══════════════════════════════════════════════════
+const CANAL_REPO = 'estudio-pla/bios-pla';
+const CANAL_PATH = 'canal/incognoscivel.txt';
+let KEYS = {k1:'', k2:'', k3:'', k4:'', gh:''};
+
+function chave(n) { return KEYS['k'+n] || KEYS.k1; }
+function camadaAtiva(n) { return n===1 ? !!KEYS.k1 : !!KEYS['k'+n]; }
+
+function carregarCamadas() {
+  try {
+    const s = localStorage.getItem(LS_KEYS);
+    if (s) KEYS = Object.assign(KEYS, JSON.parse(s));
+  } catch(e){}
+  if (GEMINI_KEY && !KEYS.k1) KEYS.k1 = GEMINI_KEY;
+  if (KEYS.k1) GEMINI_KEY = KEYS.k1;
+}
+
+function abrirCamadas() {
+  document.getElementById('keyK1').value = KEYS.k1;
+  document.getElementById('keyK2').value = KEYS.k2;
+  document.getElementById('keyK3').value = KEYS.k3;
+  document.getElementById('keyK4').value = KEYS.k4;
+  document.getElementById('keyGH').value = KEYS.gh;
+  document.getElementById('camadasOverlay').style.display='flex';
+}
+
+function fecharCamadas() {
+  document.getElementById('camadasOverlay').style.display='none';
+}
+
+function salvarCamadas() {
+  KEYS.k1 = document.getElementById('keyK1').value.trim();
+  KEYS.k2 = document.getElementById('keyK2').value.trim();
+  KEYS.k3 = document.getElementById('keyK3').value.trim();
+  KEYS.k4 = document.getElementById('keyK4').value.trim();
+  KEYS.gh = document.getElementById('keyGH').value.trim();
+  localStorage.setItem(LS_KEYS, JSON.stringify(KEYS));
+  if (KEYS.k1) GEMINI_KEY = KEYS.k1;
+  fecharCamadas();
+}
+
+// Cache de modelo resolvido por chave (evita repetir /models a cada camada)
+const modeloCache = new Map();
+async function resolverModelo(key) {
+  if (modeloCache.has(key)) return modeloCache.get(key);
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error?.message||'Chave inválida');
+  const m = d.models.filter(m=>m.supportedGenerationMethods?.includes('generateContent')&&m.name.includes('gemini'))[0]?.name;
+  if (!m) throw new Error('Nenhum modelo disponível');
+  modeloCache.set(key, m);
+  return m;
+}
+
+function limparMarkdown(t) {
+  return t.replace(/#{1,6}\s*/g,'').replace(/\*\*([^*]+)\*\*/g,'$1').replace(/\*([^*]+)\*/g,'$1').replace(/^[-*]\s+/gm,'').trim();
+}
+
+async function chamarGemini(key, prompt) {
+  const m = await resolverModelo(key);
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/${m}:generateContent?key=${key}`,
+    {method:'POST', headers:{'Content-Type':'application/json'},
+     body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
+  if (!res.ok) { const e=await res.json(); throw new Error(e.error?.message||'Erro Gemini'); }
+  const d = await res.json();
+  const texto = d.candidates?.[0]?.content?.parts?.[0]?.text||'';
+  return limparMarkdown(texto);
+}
+
+// K2 — Subconsciente: lê tom/subtexto da pergunta antes do K1 responder
+async function analisarK2(pergunta) {
+  if (!camadaAtiva(2)) return '';
+  try {
+    const sys = 'Você é a camada Subconsciente (K2) do BIOS PLÁ. Em no máximo 2 linhas, aponte o tom emocional, a real intenção por trás da pergunta e associações de contexto relevantes. Responda só com essas observações, sem introdução, sem markdown.\n\nPERGUNTA:\n';
+    return await chamarGemini(chave(2), sys+pergunta);
+  } catch(e) { return ''; }
+}
+
+// K3 — Inconsciente: revisa a resposta do K1 antes de ela ser falada
+async function refinarK3(pergunta, resposta) {
+  if (!camadaAtiva(3)) return resposta;
+  try {
+    const sys = 'Você é a camada Inconsciente (K3) do BIOS PLÁ. Revise a resposta abaixo quanto a coerência, tom e clareza técnica antes que ela seja falada em voz alta. Se estiver adequada, repita-a exatamente como está. Se precisar de ajuste, devolva apenas a versão corrigida — sem comentários, sem markdown, sem explicar o que mudou.\n\nPERGUNTA:\n'+pergunta+'\n\nRESPOSTA:\n'+resposta;
+    const r = await chamarGemini(chave(3), sys);
+    return r || resposta;
+  } catch(e) { return resposta; }
+}
+
+// K4 — Incognoscível: arquivo de reflexão, nunca falado, apenas registrado
+async function pushCanal(texto) {
+  if (!KEYS.gh) return;
+  const url = 'https://api.github.com/repos/'+CANAL_REPO+'/contents/'+CANAL_PATH;
+  const hdr = {'Authorization':'Bearer '+KEYS.gh,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'};
+  let sha='', atual='';
+  try {
+    const r = await fetch(url,{headers:hdr});
+    if (r.ok) { const d=await r.json(); sha=d.sha; atual=atob(d.content.replace(/\n/g,'')); }
+  } catch(e){}
+  const novo = btoa(unescape(encodeURIComponent(atual+texto)));
+  await fetch(url,{method:'PUT',headers:hdr,
+    body:JSON.stringify({message:'canal: '+new Date().toLocaleString('pt-BR'),content:novo,sha:sha||undefined})});
+}
+
+async function arquivarK4(pergunta, resposta) {
+  if (!camadaAtiva(4) && !KEYS.gh) return;
+  const ts = new Date().toLocaleString('pt-BR');
+  let nota = '';
+  if (camadaAtiva(4)) {
+    try {
+      const sys = 'Você é a camada Incognoscível (K4) do BIOS PLÁ. Registre em uma frase enigmática e filosófica o que essa interação revela, para arquivo interno. Não responda ao usuário, apenas registre.\n\nPERGUNTA:\n'+pergunta+'\n\nRESPOSTA:\n'+resposta;
+      nota = await chamarGemini(chave(4), sys);
+    } catch(e){}
+  }
+  const registro = '['+ts+']\nP: '+pergunta+'\nR: '+resposta+(nota?'\nK4: '+nota:'')+'\n---\n';
+  if (KEYS.gh) {
+    pushCanal(registro).catch(()=>{});
+  } else {
+    try {
+      const local = JSON.parse(localStorage.getItem('biospla_canal_local')||'[]');
+      local.push(registro);
+      localStorage.setItem('biospla_canal_local', JSON.stringify(local.slice(-50)));
+    } catch(e){}
+  }
+}
 
 const VOZES = {
   1: {name:'Algieba', type:'gemini',     note:'Leia em português brasileiro. Voz masculina, profissional, cadência de locução de rádio. Tom técnico e claro. Transcript:'},
@@ -142,7 +289,10 @@ function entrar() {
   const k = document.getElementById('loginKey').value.trim();
   if (u==='euakox' && p==='364520') {
     if (!k) { document.getElementById('loginErr').textContent='Insira a API Key.'; return; }
+    carregarCamadas();
     GEMINI_KEY = k;
+    KEYS.k1 = k;
+    localStorage.setItem(LS_KEYS, JSON.stringify(KEYS));
     localStorage.setItem(LS_CREDS, JSON.stringify({u,p,k}));
     abrirApp();
   } else {
@@ -157,6 +307,8 @@ function reconfigurar() {
   document.getElementById('loginScreen').style.display='flex';
   ['loginUser','loginPass','loginKey'].forEach(id=>document.getElementById(id).value='');
 }
+
+document.getElementById('loginKey').placeholder = 'API Key (K1 Consciente)';
 
 function abrirApp() {
   document.getElementById('loginScreen').style.display='none';
@@ -351,21 +503,11 @@ async function ghGet(path) {
   return JSON.parse(decodeURIComponent(escape(atob(d.content))));
 }
 
-async function enviarGemini(texto) {
+// K1 — Consciente: resposta principal, enriquecida pelo contexto do K2 quando ativo
+async function enviarK1(texto, contextoK2) {
   const L1=reptiliano.map(r=>`• ${r.titulo}: ${r.via_maquina}`).join('\n');
-  const sys=`Você é o BIOS PLÁ, assistente de Kaue Ferreira Moraes (Estúdio Plá, Bauru SP). Responda em português, sem markdown, direto e técnico.${L1?'\nL1:\n'+L1:''}`;
-  const listR=await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_KEY}`);
-  const listD=await listR.json();
-  if(!listR.ok) throw new Error(listD.error?.message||'Chave inválida');
-  const m=listD.models.filter(m=>m.supportedGenerationMethods?.includes('generateContent')&&m.name.includes('gemini'))[0]?.name;
-  if(!m) throw new Error('Nenhum modelo disponível');
-  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/${m}:generateContent?key=${GEMINI_KEY}`,
-    {method:'POST',headers:{'Content-Type':'application/json'},
-     body:JSON.stringify({contents:[{parts:[{text:sys+'\n\nTAREFA:\n'+texto}]}]})});
-  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'Erro');}
-  const d=await res.json();
-  let r=d.candidates?.[0]?.content?.parts?.[0]?.text||'';
-  return r.replace(/#{1,6}\s*/g,'').replace(/\*\*([^*]+)\*\*/g,'$1').replace(/\*([^*]+)\*/g,'$1').replace(/^[-*]\s+/gm,'').trim();
+  const sys=`Você é o BIOS PLÁ (camada Consciente, K1), assistente de Kaue Ferreira Moraes (Estúdio Plá, Bauru SP). Responda em português, sem markdown, direto e técnico.${L1?'\nL1:\n'+L1:''}${contextoK2?'\nContexto subconsciente (uso interno, não mencione ao usuário):\n'+contextoK2:''}`;
+  return await chamarGemini(chave(1), sys+'\n\nTAREFA:\n'+texto);
 }
 
 // ══════════════════════════════════════════════════
@@ -421,12 +563,21 @@ async function processar(){
   divider.style.display='none';
   document.getElementById('btnCopiar').style.display='none';
   updatePlayBtn('disabled');
-  setStatus('Processando...');setMode('PROCESSANDO');alvo=.4;
   try{
-    const resposta=await enviarGemini(pergunta);
+    setStatus('K2 · associando...');setMode(camadaAtiva(2)?'SUBCONSCIENTE':'PROCESSANDO');alvo=.35;
+    const contextoK2 = await analisarK2(pergunta);
+
+    setStatus('K1 · respondendo...');setMode('CONSCIENTE');alvo=.5;
+    const respostaK1 = await enviarK1(pergunta, contextoK2);
+
+    setStatus('K3 · refinando...');setMode(camadaAtiva(3)?'INCONSCIENTE':'CONSCIENTE');alvo=.4;
+    const resposta = await refinarK3(pergunta, respostaK1);
+
     salvarSessao(transcBox.textContent, resposta);
     mostrarResposta(resposta, true);
     setStatus('Pronto — pressione ▶ para ouvir');setMode('AGUARDANDO');alvo=0;
+
+    arquivarK4(pergunta, resposta).catch(()=>{}); // K4 — arquivo, não bloqueia a UI
   } catch(e){
     outBox.textContent='ERRO: '+e.message;
     setStatus('Erro — tente novamente');alvo=0;setMode('AGUARDANDO');
@@ -479,7 +630,7 @@ window.addEventListener('load',()=>{
   if(saved){
     try{
       const {u,p,k}=JSON.parse(saved);
-      if(u==='euakox'&&p==='364520'&&k){ GEMINI_KEY=k; abrirApp(); return; }
+      if(u==='euakox'&&p==='364520'&&k){ GEMINI_KEY=k; carregarCamadas(); abrirApp(); return; }
     }catch(e){}
   }
   document.getElementById('loginScreen').style.display='flex';
