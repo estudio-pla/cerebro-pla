@@ -3,48 +3,60 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BIOS PLÁ — v2.3.0</title>
+<title>BIOS PLÁ — v2.4.0</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%230a0a0a'/><circle cx='50' cy='50' r='40' fill='none' stroke='%2339ff14' stroke-width='4' opacity='0.35'/><circle cx='50' cy='50' r='26' fill='%2339ff14'/></svg>">
 <style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{background:#0a0a0a;color:#e0e0e0;font-family:'Courier New',monospace;height:100vh;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;color:#e0e0e0;font-family:'Courier New',monospace;height:100vh;display:flex;flex-direction:column;overflow:hidden}
 
-  /* LOGIN */
-  #loginScreen{position:fixed;inset:0;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;gap:14px}
-  #loginScreen h1{font-size:26px;letter-spacing:.2em;color:#39ff14;text-shadow:0 0 20px #39ff14;margin-bottom:6px}
-  #loginScreen input{background:#111;border:1px solid #333;color:#e0e0e0;padding:11px 20px;font-size:16px;font-family:monospace;border-radius:8px;width:280px;text-align:center}
-  #loginScreen input:focus{outline:none;border-color:#39ff14}
-  #loginErr{color:#ff4444;font-size:12px;min-height:16px}
-  #loginScreen button{background:#39ff14;color:#000;border:none;padding:11px 40px;font-size:15px;font-weight:700;border-radius:8px;cursor:pointer;letter-spacing:.1em}
-  #loginLink{color:#39ff14;font-size:10px;opacity:.55;text-decoration:none;letter-spacing:.05em}
+/* LOGIN */
+#loginScreen{position:fixed;inset:0;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;gap:14px}
+#loginScreen h1{font-size:26px;letter-spacing:.2em;color:#39ff14;text-shadow:0 0 20px #39ff14;margin-bottom:6px}
+#loginScreen input{background:#111;border:1px solid #333;color:#e0e0e0;padding:11px 20px;font-size:16px;font-family:monospace;border-radius:8px;width:280px;text-align:center}
+#loginScreen input:focus{outline:none;border-color:#39ff14}
+#loginErr{color:#ff4444;font-size:12px;min-height:16px}
+#loginBtnOk{background:#39ff14;color:#000;border:none;padding:11px 40px;font-size:15px;font-weight:700;border-radius:8px;cursor:pointer;letter-spacing:.1em}
+#loginLink{color:#39ff14;font-size:10px;opacity:.5;text-decoration:none;letter-spacing:.04em}
 
-  /* MAIN */
-  #mainApp{display:none;flex-direction:column;align-items:center;width:100vw;height:100vh;padding:16px}
-  #header{font-size:11px;color:#555;letter-spacing:.15em;margin-bottom:12px}
+/* RESTORE */
+#restoreBar{display:none;background:#0d1a0d;border-bottom:1px solid #39ff14;padding:10px 16px;font-size:13px;color:#39ff14;align-items:center;gap:12px;flex-shrink:0}
+#restoreBar button{background:#39ff14;color:#000;border:none;padding:4px 14px;border-radius:4px;cursor:pointer;font-family:monospace;font-size:12px;font-weight:700}
+#restoreBar .skip{background:none;border:1px solid #333;color:#555;margin-left:4px}
 
-  /* GONIÔMETRO */
-  #gonioWrap{position:relative;width:260px;height:260px;margin:0 auto 14px}
-  #gonioCanvas{width:260px;height:260px;border-radius:50%}
-  #gonioLabel{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:12px;color:#39ff14;letter-spacing:.1em;text-align:center;line-height:1.8;pointer-events:none}
+/* HEADER */
+#header{flex-shrink:0;text-align:center;padding:10px;font-size:10px;color:#333;letter-spacing:.12em}
 
-  /* SELETOR DE VOZ */
-  #voiceSelector{display:flex;gap:8px;margin-bottom:10px}
-  .vbtn{background:#111;border:1px solid #333;color:#666;padding:5px 16px;border-radius:20px;cursor:pointer;font-family:monospace;font-size:12px;letter-spacing:.08em;transition:all .2s}
-  .vbtn.active{border-color:#39ff14;color:#39ff14}
+/* GONIÔMETRO */
+#gonioWrap{flex-shrink:0;position:relative;width:180px;height:180px;margin:0 auto 8px}
+#gonioCanvas{width:180px;height:180px;border-radius:50%}
+#gonioLabel{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:11px;color:#39ff14;letter-spacing:.1em;text-align:center;line-height:1.8;pointer-events:none}
 
-  /* STATUS */
-  #status{font-size:13px;color:#555;letter-spacing:.07em;min-height:20px;text-align:center;margin-bottom:12px}
+/* CONTROLES */
+#controls{flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:10px;padding:6px 16px}
+.vbtn{background:#111;border:1px solid #2a2a2a;color:#444;padding:5px 14px;border-radius:20px;cursor:pointer;font-family:monospace;font-size:11px;letter-spacing:.07em;transition:all .2s}
+.vbtn.active{border-color:#39ff14;color:#39ff14}
+#sep{width:1px;height:20px;background:#222;margin:0 4px}
+#btnPlay{background:#111;border:1px solid #2a2a2a;color:#555;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .2s;line-height:1}
+#btnPlay:not(:disabled):hover{border-color:#39ff14;color:#39ff14}
+#btnPlay:disabled{opacity:.3;cursor:default}
+#btnPlay.playing{border-color:#39ff14;color:#39ff14;box-shadow:0 0 8px rgba(57,255,20,.3)}
 
-  /* OUTPUT */
-  #outBox{background:#111;border:1px solid #222;border-radius:10px;width:100%;max-width:680px;max-height:200px;overflow-y:auto;padding:14px;font-size:14px;line-height:1.7;color:#ccc;flex:1}
+/* STATUS */
+#status{flex-shrink:0;text-align:center;font-size:12px;color:#444;letter-spacing:.06em;padding:4px 16px;min-height:22px}
 
-  /* RODAPÉ */
-  #footer{margin-top:10px;display:flex;justify-content:center;gap:20px}
-  #btnCopiar{display:none;padding:5px 14px;background:#1a1a1a;border:1px solid #333;color:#888;border-radius:6px;cursor:pointer;font-size:12px}
-  #btnReconfig{background:none;border:none;color:#2a2a2a;font-size:10px;cursor:pointer;font-family:monospace;letter-spacing:.05em}
-  #btnReconfig:hover{color:#555}
+/* ÁREA DE TEXTO — preenche o restante */
+#textArea{flex:1;overflow-y:auto;margin:0 12px 8px;background:#0d0d0d;border:1px solid #1a1a1a;border-radius:8px;padding:14px;font-size:14px;line-height:1.8;color:#bbb;display:flex;flex-direction:column;gap:10px}
+#transcBox{color:#666;font-size:13px;min-height:20px;border-left:2px solid #222;padding-left:10px;white-space:pre-wrap}
+#transcBox.active{border-left-color:#39ff14;color:#888}
+#divider{display:none;border:none;border-top:1px solid #1a1a1a}
+#outBox{color:#ccc;white-space:pre-wrap;flex:1}
 
-  #hint{margin-top:8px;font-size:10px;color:#2a2a2a;letter-spacing:.05em}
+/* RODAPÉ */
+#footer{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:6px 16px 10px;gap:8px}
+#btnCopiar{display:none;padding:4px 12px;background:#1a1a1a;border:1px solid #2a2a2a;color:#666;border-radius:5px;cursor:pointer;font-size:11px;font-family:monospace}
+#hint{font-size:10px;color:#222;letter-spacing:.04em;flex:1;text-align:center}
+#btnReconfig{background:none;border:none;color:#222;font-size:10px;cursor:pointer;font-family:monospace;letter-spacing:.04em}
+#btnReconfig:hover{color:#555}
 </style>
 </head>
 <body>
@@ -52,283 +64,366 @@
 <!-- LOGIN -->
 <div id="loginScreen">
   <h1>BIOS PLÁ</h1>
-  <div style="color:#444;font-size:11px;letter-spacing:.1em">ESTÚDIO PLÁ · ACESSO RESTRITO</div>
+  <div style="color:#333;font-size:10px;letter-spacing:.12em">ESTÚDIO PLÁ · ACESSO RESTRITO</div>
   <input id="loginUser" type="text" placeholder="usuário" autocomplete="off">
   <input id="loginPass" type="password" placeholder="senha" autocomplete="off">
   <input id="loginKey" type="password" placeholder="API Key" autocomplete="off" onkeydown="if(event.key==='Enter')entrar()">
-  <a href="https://aistudio.google.com/app/apikey" target="_blank" id="loginLink">Gere ou adquira sua chave em aistudio.google.com</a>
+  <a href="https://aistudio.google.com/app/apikey" target="_blank" id="loginLink">Gere sua chave em aistudio.google.com</a>
   <div id="loginErr"></div>
-  <button onclick="entrar()">ENTRAR</button>
+  <button id="loginBtnOk" onclick="entrar()">ENTRAR</button>
 </div>
 
-<!-- MAIN -->
-<div id="mainApp">
-  <div id="header">BIOS PLÁ v2.3.0 · ESTÚDIO PLÁ · Kaue Ferreira Moraes</div>
+<!-- RESTORE BAR -->
+<div id="restoreBar">
+  <span>Sessão anterior encontrada —</span>
+  <button onclick="restaurar()">Restaurar</button>
+  <button class="skip" onclick="descartarRestore()">Descartar</button>
+</div>
 
-  <div id="gonioWrap">
-    <canvas id="gonioCanvas" width="260" height="260"></canvas>
-    <div id="gonioLabel">BIOS PLÁ<br><span id="gonioMode" style="font-size:10px;color:#555">AGUARDANDO</span></div>
-  </div>
+<!-- HEADER -->
+<div id="header">BIOS PLÁ v2.4.0 · ESTÚDIO PLÁ · Kaue Ferreira Moraes</div>
 
-  <div id="voiceSelector">
-    <button class="vbtn active" id="v1btn" onclick="setVoz(1)">VOZ 1</button>
-    <button class="vbtn" id="v2btn" onclick="setVoz(2)">VOZ 2</button>
-  </div>
+<!-- GONIÔMETRO -->
+<div id="gonioWrap">
+  <canvas id="gonioCanvas" width="180" height="180"></canvas>
+  <div id="gonioLabel">BIOS PLÁ<br><span id="gonioMode" style="font-size:9px;color:#444">AGUARDANDO</span></div>
+</div>
 
-  <div id="status">Segure ESPAÇO para falar</div>
-  <div id="outBox">Aguardando Kaue...</div>
+<!-- CONTROLES -->
+<div id="controls">
+  <button class="vbtn active" id="v1btn" onclick="setVoz(1)">VOZ 1</button>
+  <button class="vbtn" id="v2btn" onclick="setVoz(2)">VOZ 2</button>
+  <div id="sep"></div>
+  <button id="btnPlay" disabled title="Clique: play/pause · Duplo clique: stop">▶</button>
+</div>
 
-  <div id="footer">
-    <button id="btnCopiar" onclick="copiar()">📋 Copiar</button>
-    <button id="btnReconfig" onclick="reconfigurar()">⚙ reconfigurar</button>
-  </div>
+<!-- STATUS -->
+<div id="status">Segure ESPAÇO para falar</div>
+
+<!-- ÁREA DE TEXTO -->
+<div id="textArea">
+  <div id="transcBox"></div>
+  <hr id="divider">
+  <div id="outBox"></div>
+</div>
+
+<!-- RODAPÉ -->
+<div id="footer">
+  <button id="btnCopiar" onclick="copiar()">📋 Copiar</button>
   <div id="hint">[ ESPAÇO ] segurar = falar · soltar = enviar</div>
+  <button id="btnReconfig" onclick="reconfigurar()">⚙ reconfigurar</button>
 </div>
 
 <script>
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════
 // CONFIG
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════
 let GEMINI_KEY = '';
 const GH_TOKEN  = '';
 const GH_REPO   = 'estudio-pla/bios-pla';
-const LS_KEY    = 'biospla_creds';
+const LS_CREDS  = 'biospla_creds';
+const LS_SESS   = 'biospla_session';
+const LS_VOZ    = 'biospla_voz';
 
 const VOZES = {
-  1: { name:'Algieba', note:'Leia em português brasileiro. Voz masculina, profissional, cadência de locução. Tom: técnico e claro. Transcript:' },
-  2: { name:'Aoede',   note:'Leia em português brasileiro. Voz feminina, cálida e profissional. Cadência natural e conversacional. Transcript:' }
+  1: {name:'Algieba', note:'Leia em português brasileiro. Voz masculina, profissional, cadência de locução de rádio. Tom técnico e claro. Transcript:'},
+  2: {name:'Aoede',   note:'Leia em português brasileiro. Voz feminina, calorosa e profissional. Cadência natural e conversacional. Transcript:'}
 };
 let vozAtiva = 1;
 
-// ══════════════════════════════════════════════
-// LOGIN + LOCALSTORAGE
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════
+// LOGIN
+// ══════════════════════════════════════════════════
 function entrar() {
   const u = document.getElementById('loginUser').value.trim().toLowerCase();
   const p = document.getElementById('loginPass').value.trim();
   const k = document.getElementById('loginKey').value.trim();
-  if (u === 'euakox' && p === '364520') {
-    if (!k) { document.getElementById('loginErr').textContent = 'Insira a API Key.'; return; }
+  if (u==='euakox' && p==='364520') {
+    if (!k) { document.getElementById('loginErr').textContent='Insira a API Key.'; return; }
     GEMINI_KEY = k;
-    localStorage.setItem(LS_KEY, JSON.stringify({u,p,k}));
+    localStorage.setItem(LS_CREDS, JSON.stringify({u,p,k}));
     abrirApp();
   } else {
-    document.getElementById('loginErr').textContent = 'Acesso negado.';
+    document.getElementById('loginErr').textContent='Acesso negado.';
     setTimeout(()=>document.getElementById('loginErr').textContent='', 2000);
   }
 }
 
 function reconfigurar() {
-  localStorage.removeItem(LS_KEY);
-  GEMINI_KEY = '';
-  document.getElementById('mainApp').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'flex';
+  localStorage.removeItem(LS_CREDS);
+  GEMINI_KEY='';
+  document.getElementById('loginScreen').style.display='flex';
   ['loginUser','loginPass','loginKey'].forEach(id=>document.getElementById(id).value='');
 }
 
 function abrirApp() {
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('mainApp').style.display = 'flex';
+  document.getElementById('loginScreen').style.display='none';
+  // Verifica sessão anterior
+  const sess = localStorage.getItem(LS_SESS);
+  if (sess) {
+    try {
+      const s = JSON.parse(sess);
+      if (s.transcript||s.response) {
+        document.getElementById('restoreBar').style.display='flex';
+      }
+    } catch(e){}
+  }
   iniciar();
 }
 
-// ══════════════════════════════════════════════
-// SELETOR DE VOZ
-// ══════════════════════════════════════════════
-function setVoz(n) {
-  vozAtiva = n;
-  document.getElementById('v1btn').className = 'vbtn' + (n===1?' active':'');
-  document.getElementById('v2btn').className = 'vbtn' + (n===2?' active':'');
-  localStorage.setItem('biospla_voz', n);
+function restaurar() {
+  const sess = JSON.parse(localStorage.getItem(LS_SESS)||'{}');
+  if (sess.transcript) { transcBox.textContent=sess.transcript; salvarSessao(sess.transcript,sess.response||''); }
+  if (sess.response) { mostrarResposta(sess.response, false); }
+  document.getElementById('restoreBar').style.display='none';
 }
 
-// ══════════════════════════════════════════════
+function descartarRestore() {
+  localStorage.removeItem(LS_SESS);
+  document.getElementById('restoreBar').style.display='none';
+}
+
+// ══════════════════════════════════════════════════
+// VOZES
+// ══════════════════════════════════════════════════
+function setVoz(n) {
+  vozAtiva=n;
+  document.getElementById('v1btn').className='vbtn'+(n===1?' active':'');
+  document.getElementById('v2btn').className='vbtn'+(n===2?' active':'');
+  localStorage.setItem(LS_VOZ, n);
+}
+
+// ══════════════════════════════════════════════════
+// PLAYER ÁUDIO
+// ══════════════════════════════════════════════════
+let currentAudio = null;
+let clickTimer    = null;
+
+function updatePlayBtn(state) {
+  const btn = document.getElementById('btnPlay');
+  if (state==='disabled') { btn.textContent='▶'; btn.disabled=true; btn.className=''; }
+  else if (state==='ready') { btn.textContent='▶'; btn.disabled=false; btn.className=''; }
+  else if (state==='playing') { btn.textContent='⏸'; btn.disabled=false; btn.className='playing'; }
+  else if (state==='paused') { btn.textContent='▶'; btn.disabled=false; btn.className=''; }
+  else if (state==='stopped') { btn.textContent='▶'; btn.disabled=false; btn.className=''; }
+}
+
+document.getElementById('btnPlay').addEventListener('click', () => {
+  if (clickTimer) {
+    clearTimeout(clickTimer); clickTimer=null;
+    // Duplo clique — stop (volta ao início)
+    if (currentAudio) { currentAudio.pause(); currentAudio.currentTime=0; updatePlayBtn('stopped'); }
+    return;
+  }
+  clickTimer = setTimeout(() => {
+    clickTimer=null;
+    if (!currentAudio) return;
+    if (currentAudio.paused) {
+      currentAudio.play(); updatePlayBtn('playing');
+    } else {
+      currentAudio.pause(); updatePlayBtn('paused'); // pausa no lugar
+    }
+  }, 280);
+});
+
+// ══════════════════════════════════════════════════
 // GEMINI TTS
-// ══════════════════════════════════════════════
-function pcmToWav(pcmBase64, rate=24000) {
-  const pcm = Uint8Array.from(atob(pcmBase64), c=>c.charCodeAt(0));
-  const buf = new ArrayBuffer(44 + pcm.length);
+// ══════════════════════════════════════════════════
+function pcmToWav(b64, rate=24000) {
+  const pcm = Uint8Array.from(atob(b64), c=>c.charCodeAt(0));
+  const buf = new ArrayBuffer(44+pcm.length);
   const v = new DataView(buf);
-  const s = (o,n,l=4)=>{ for(let i=0;i<l;i++) v.setUint8(o+i,n.charCodeAt(i)); };
-  s(0,'RIFF'); v.setUint32(4,36+pcm.length,true); s(8,'WAVE');
-  s(12,'fmt '); v.setUint32(16,16,true); v.setUint16(20,1,true);
+  const wr = (o,s)=>{for(let i=0;i<s.length;i++) v.setUint8(o+i,s.charCodeAt(i))};
+  wr(0,'RIFF'); v.setUint32(4,36+pcm.length,true); wr(8,'WAVE');
+  wr(12,'fmt '); v.setUint32(16,16,true); v.setUint16(20,1,true);
   v.setUint16(22,1,true); v.setUint32(24,rate,true);
   v.setUint32(28,rate*2,true); v.setUint16(32,2,true); v.setUint16(34,16,true);
-  s(36,'data'); v.setUint32(40,pcm.length,true);
+  wr(36,'data'); v.setUint32(40,pcm.length,true);
   new Uint8Array(buf).set(pcm,44);
   return new Uint8Array(buf);
 }
 
-function parseMime(mime) {
+function parseMime(m) {
   let rate=24000;
-  mime.split(';').forEach(p=>{
-    p=p.trim();
-    if(p.toLowerCase().startsWith('rate=')) rate=parseInt(p.split('=')[1])||24000;
-  });
+  m.split(';').forEach(p=>{p=p.trim();if(p.toLowerCase().startsWith('rate='))rate=parseInt(p.split('=')[1])||24000;});
   return rate;
 }
 
-async function falar(texto, cb) {
+async function gerarAudio(texto) {
+  updatePlayBtn('disabled');
   const voz = VOZES[vozAtiva];
-  const prompt = voz.note + ' ' + '\u00A0\u00A0' + texto;
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:generateContent?key=${GEMINI_KEY}`,
-      { method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({
-          contents:[{parts:[{text:prompt}]}],
-          generationConfig:{
-            responseModalities:['AUDIO'],
-            speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:voz.name}}}
-          }
-        })
-      }
-    );
-    const d = await res.json();
-    const part = d.candidates?.[0]?.content?.parts?.[0];
-    if (part?.inlineData?.data) {
-      const rate = parseMime(part.inlineData.mimeType||'audio/L16;rate=24000');
-      const wav  = pcmToWav(part.inlineData.data, rate);
-      const blob = new Blob([wav], {type:'audio/wav'});
-      const url  = URL.createObjectURL(blob);
-      const aud  = new Audio(url);
-      aud.onended = ()=>{ URL.revokeObjectURL(url); if(cb)cb(); };
-      await aud.play();
-      return;
-    }
-    throw new Error('sem áudio');
-  } catch(e) {
-    console.warn('TTS falhou, usando Web Speech:', e);
-    const u = new SpeechSynthesisUtterance('\u00A0\u00A0'+texto);
-    u.lang='pt-BR'; u.pitch=0.4; u.rate=0.95;
-    if(cb) u.onend=cb;
-    speechSynthesis.speak(u);
-  }
+  const prompt = voz.note + ' \u00A0\u00A0' + texto;
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:generateContent?key=${GEMINI_KEY}`,
+    {method:'POST', headers:{'Content-Type':'application/json'},
+     body:JSON.stringify({
+       contents:[{parts:[{text:prompt}]}],
+       generationConfig:{responseModalities:['AUDIO'],
+         speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:voz.name}}}}
+     })}
+  );
+  const d = await res.json();
+  if (!res.ok) throw new Error(d.error?.message||'Erro TTS');
+  const part = d.candidates?.[0]?.content?.parts?.[0];
+  if (!part?.inlineData?.data) throw new Error('Áudio não retornado');
+  const rate = parseMime(part.inlineData.mimeType||'audio/L16;rate=24000');
+  const wav  = pcmToWav(part.inlineData.data, rate);
+  const blob = new Blob([wav],{type:'audio/wav'});
+  const url  = URL.createObjectURL(blob);
+  if (currentAudio) { currentAudio.pause(); URL.revokeObjectURL(currentAudio._url||''); }
+  currentAudio = new Audio(url);
+  currentAudio._url = url;
+  currentAudio.onended = ()=>updatePlayBtn('ready');
+  updatePlayBtn('ready');
 }
 
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════
+// SESSÃO / SAVE
+// ══════════════════════════════════════════════════
+function salvarSessao(transcript, response) {
+  localStorage.setItem(LS_SESS, JSON.stringify({transcript, response, ts:Date.now()}));
+}
+
+// ══════════════════════════════════════════════════
 // GONIÔMETRO
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════
 const canvas=document.getElementById('gonioCanvas');
 const ctx=canvas.getContext('2d');
 let nivel=0, alvo=0;
 
-function desenharGonio() {
-  const W=260,H=260,cx=130,cy=130,r=118;
+function desenhar() {
+  const W=180,H=180,cx=90,cy=90,r=86;
   ctx.clearRect(0,0,W,H);
-  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle='#0f0f0f'; ctx.fill();
-  const cores=['#1a3a1a','#1e4d1e','#22661e','#39ff14'];
+  ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fillStyle='#0f0f0f';ctx.fill();
+  const C=['#1a3a1a','#1e4d1e','#22661e','#39ff14'];
   for(let i=0;i<4;i++){
     if(nivel>i*.25){
-      const ext=Math.min((nivel-i*.25)/.25,1)*359.9;
-      const ri=r-8-i*17;
-      ctx.beginPath(); ctx.arc(cx,cy,ri,-Math.PI/2,-Math.PI/2+ext*Math.PI/180);
-      ctx.strokeStyle=cores[i]; ctx.lineWidth=12; ctx.stroke();
+      const e=Math.min((nivel-i*.25)/.25,1)*359.9;
+      const ri=r-6-i*13;
+      ctx.beginPath();ctx.arc(cx,cy,ri,-Math.PI/2,-Math.PI/2+e*Math.PI/180);
+      ctx.strokeStyle=C[i];ctx.lineWidth=10;ctx.stroke();
     }
   }
-  const pulse=.7+nivel*.5;
-  ctx.beginPath(); ctx.arc(cx,cy,16*pulse,0,Math.PI*2);
-  ctx.fillStyle=nivel>.1?`rgba(57,255,20,${.3+nivel*.7})`:'#1a1a1a'; ctx.fill();
+  const p=.7+nivel*.5;
+  ctx.beginPath();ctx.arc(cx,cy,12*p,0,Math.PI*2);
+  ctx.fillStyle=nivel>.1?`rgba(57,255,20,${.3+nivel*.7})`:'#1a1a1a';ctx.fill();
   nivel+=(alvo-nivel)*.1;
-  requestAnimationFrame(desenharGonio);
+  requestAnimationFrame(desenhar);
 }
 
 function setStatus(t){document.getElementById('status').textContent=t}
 function setMode(t){document.getElementById('gonioMode').textContent=t}
 
-// ══════════════════════════════════════════════
-// GEMINI (TEXTO)
-// ══════════════════════════════════════════════
-let reptiliano=[], amigdala=[];
+// ══════════════════════════════════════════════════
+// GEMINI TEXTO
+// ══════════════════════════════════════════════════
+let reptiliano=[];
 
 async function ghGet(path) {
   if(!GH_TOKEN) return null;
-  const res=await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${path}`,
-    {headers:{'Authorization':`Bearer ${GH_TOKEN}`,'Accept':'application/vnd.github.v3+json'}});
-  if(!res.ok) return null;
-  const d=await res.json();
+  const r=await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${path}`,
+    {headers:{'Authorization':`Bearer ${GH_TOKEN}`}});
+  if(!r.ok) return null;
+  const d=await r.json();
   return JSON.parse(decodeURIComponent(escape(atob(d.content))));
 }
 
-function buildPrompt() {
-  const L1=reptiliano.map(r=>`• [${r.id}] ${r.titulo}: ${r.via_maquina}`).join('\n')||'';
-  return `Você é o BIOS PLÁ, assistente de Kaue Ferreira Moraes (Estúdio Plá, Bauru SP).\nResponda em português, sem markdown, direto e técnico.\nL1:\n${L1}`;
-}
-
 async function enviarGemini(texto) {
-  const listRes=await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_KEY}`);
-  const listData=await listRes.json();
-  if(!listRes.ok) throw new Error(listData.error?.message||'Chave inválida');
-  const modelos=listData.models.filter(m=>m.supportedGenerationMethods?.includes('generateContent')&&m.name.includes('gemini'));
-  if(!modelos.length) throw new Error('Nenhum modelo disponível');
-  const modelo=modelos[0].name;
-  const res=await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/${modelo}:generateContent?key=${GEMINI_KEY}`,
+  const L1=reptiliano.map(r=>`• ${r.titulo}: ${r.via_maquina}`).join('\n');
+  const sys=`Você é o BIOS PLÁ, assistente de Kaue Ferreira Moraes (Estúdio Plá, Bauru SP). Responda em português, sem markdown, direto e técnico.${L1?'\nL1:\n'+L1:''}`;
+  const listR=await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_KEY}`);
+  const listD=await listR.json();
+  if(!listR.ok) throw new Error(listD.error?.message||'Chave inválida');
+  const m=listD.models.filter(m=>m.supportedGenerationMethods?.includes('generateContent')&&m.name.includes('gemini'))[0]?.name;
+  if(!m) throw new Error('Nenhum modelo disponível');
+  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/${m}:generateContent?key=${GEMINI_KEY}`,
     {method:'POST',headers:{'Content-Type':'application/json'},
-     body:JSON.stringify({contents:[{parts:[{text:buildPrompt()+'\n\nTAREFA:\n'+texto}]}]})});
-  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'Erro Gemini');}
+     body:JSON.stringify({contents:[{parts:[{text:sys+'\n\nTAREFA:\n'+texto}]}]})});
+  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'Erro');}
   const d=await res.json();
   let r=d.candidates?.[0]?.content?.parts?.[0]?.text||'';
-  r=r.replace(/#{1,6}\s*/g,'').replace(/\*\*([^*]+)\*\*/g,'$1').replace(/\*([^*]+)\*/g,'$1').replace(/^[-*]\s+/gm,'').trim();
-  return r;
+  return r.replace(/#{1,6}\s*/g,'').replace(/\*\*([^*]+)\*\*/g,'$1').replace(/\*([^*]+)\*/g,'$1').replace(/^[-*]\s+/gm,'').trim();
+}
+
+// ══════════════════════════════════════════════════
+// UI HELPERS
+// ══════════════════════════════════════════════════
+const transcBox = document.getElementById('transcBox');
+const outBox    = document.getElementById('outBox');
+const divider   = document.getElementById('divider');
+
+function mostrarResposta(txt, comAudio=true) {
+  divider.style.display='block';
+  outBox.textContent=txt;
+  document.getElementById('btnCopiar').style.display='inline-block';
+  if (comAudio) gerarAudio(txt).catch(e=>{outBox.textContent+='\n\n⚠ Áudio: '+e.message; updatePlayBtn('disabled');});
 }
 
 function copiar(){
-  const txt=document.getElementById('outBox').textContent;
-  navigator.clipboard.writeText(txt);
+  navigator.clipboard.writeText(outBox.textContent);
   document.getElementById('btnCopiar').textContent='✓ Copiado';
   setTimeout(()=>document.getElementById('btnCopiar').textContent='📋 Copiar',2000);
 }
 
-// ══════════════════════════════════════════════
-// ESPAÇO PTT
-// ══════════════════════════════════════════════
-let recognition=null, micAtivo=false, textoCapturado='';
+// ══════════════════════════════════════════════════
+// MICROFONE + PTT
+// ══════════════════════════════════════════════════
+let recognition=null, micAtivo=false, textoFinal='', textoInterim='';
 
 function initRec(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR) return null;
-  const r=new SR(); r.lang='pt-BR'; r.continuous=true; r.interimResults=false;
+  const r=new SR(); r.lang='pt-BR'; r.continuous=true; r.interimResults=true;
   r.onresult=ev=>{
-    textoCapturado+=Array.from(ev.results).slice(ev.resultIndex).filter(x=>x.isFinal).map(x=>x[0].transcript).join(' ');
+    textoInterim='';
+    for(let i=ev.resultIndex;i<ev.results.length;i++){
+      if(ev.results[i].isFinal) textoFinal+=ev.results[i][0].transcript;
+      else textoInterim+=ev.results[i][0].transcript;
+    }
+    transcBox.textContent=textoFinal+textoInterim;
+    transcBox.className='active';
+    if(textoFinal) salvarSessao(textoFinal, outBox.textContent||'');
   };
-  r.onerror=()=>{micAtivo=false;alvo=0;setStatus('Erro no microfone')};
+  r.onerror=()=>{micAtivo=false;alvo=0;setStatus('Erro no microfone');transcBox.className='';};
   r.onend=()=>{if(micAtivo)try{r.start()}catch(e){}};
   return r;
 }
 
 async function processar(){
-  const pergunta=textoCapturado.trim(); textoCapturado='';
+  const pergunta=(textoFinal+textoInterim).trim();
+  textoFinal=''; textoInterim='';
+  transcBox.className='';
   if(!pergunta){setStatus('Não ouvi nada. Tente novamente.');alvo=0;setMode('AGUARDANDO');return;}
-  const out=document.getElementById('outBox');
-  out.textContent='Processando...';
+  outBox.textContent='';
+  divider.style.display='none';
   document.getElementById('btnCopiar').style.display='none';
-  setStatus('Ok Kaue, processando...');setMode('PROCESSANDO');alvo=.4;
-  falar('Ok Cauê, processando');
+  updatePlayBtn('disabled');
+  setStatus('Processando...');setMode('PROCESSANDO');alvo=.4;
   try{
     const resposta=await enviarGemini(pergunta);
-    out.textContent=resposta;
-    document.getElementById('btnCopiar').style.display='inline-block';
-    alvo=.9;setMode('FALANDO');
-    falar(resposta,()=>{alvo=0;setMode('AGUARDANDO');});
-    setStatus('Segure ESPAÇO para nova mensagem');
+    salvarSessao(transcBox.textContent, resposta);
+    mostrarResposta(resposta, true);
+    setStatus('Pronto — pressione ▶ para ouvir');setMode('AGUARDANDO');alvo=0;
   } catch(e){
-    out.textContent='ERRO: '+e.message;
+    outBox.textContent='ERRO: '+e.message;
     setStatus('Erro — tente novamente');alvo=0;setMode('AGUARDANDO');
   }
 }
 
 document.addEventListener('keydown',e=>{
   if(e.code==='Space'&&!e.repeat){
-    const tag=document.activeElement.tagName;
-    if(tag==='INPUT'||tag==='TEXTAREA') return;
+    if(['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
     e.preventDefault();
     if(!micAtivo){
       if(!recognition) recognition=initRec();
       if(!recognition) return;
-      micAtivo=true; textoCapturado='';
+      micAtivo=true; textoFinal=''; textoInterim='';
+      transcBox.textContent=''; outBox.textContent='';
+      divider.style.display='none';
+      document.getElementById('btnCopiar').style.display='none';
+      updatePlayBtn('disabled');
       try{recognition.start()}catch(er){}
-      alvo=.7;setStatus('Ouvindo Kaue...');setMode('OUVINDO');
+      alvo=.7;setStatus('Ouvindo...');setMode('OUVINDO');
     }
   }
 });
@@ -340,44 +435,30 @@ document.addEventListener('keyup',e=>{
     micAtivo=false;
     if(recognition) recognition.stop();
     alvo=.2;setStatus('Enviando...');setMode('ENVIANDO');
-    setTimeout(processar,700);
+    setTimeout(processar,600);
   }
 });
 
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════
 // INIT
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════
 async function iniciar(){
-  desenharGonio();
-  // Restaura voz salva
-  const vSaved=localStorage.getItem('biospla_voz');
+  desenhar();
+  const vSaved=localStorage.getItem(LS_VOZ);
   if(vSaved) setVoz(parseInt(vSaved));
-  // Carrega memória
-  try{
-    const rep=await ghGet('reptiliano.json');
-    if(rep) reptiliano=rep.regras||[];
-  } catch(e){}
-  setStatus('Preparando...');
-  await new Promise(r=>setTimeout(r,600));
-  alvo=.5;
-  falar('Olá, bem-vindo Cauê. No que posso ajudar?',()=>{alvo=0;});
+  try{ const rep=await ghGet('reptiliano.json'); if(rep) reptiliano=rep.regras||[]; } catch(e){}
   setStatus('Segure ESPAÇO para falar');setMode('AGUARDANDO');
 }
 
 // Verifica localStorage ao carregar
 window.addEventListener('load',()=>{
-  const saved=localStorage.getItem(LS_KEY);
+  const saved=localStorage.getItem(LS_CREDS);
   if(saved){
     try{
       const {u,p,k}=JSON.parse(saved);
-      if(u==='euakox'&&p==='364520'&&k){
-        GEMINI_KEY=k;
-        abrirApp();
-        return;
-      }
-    } catch(e){}
+      if(u==='euakox'&&p==='364520'&&k){ GEMINI_KEY=k; abrirApp(); return; }
+    }catch(e){}
   }
-  // Mostra login normalmente
   document.getElementById('loginScreen').style.display='flex';
 });
 </script>
